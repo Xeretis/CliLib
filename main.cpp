@@ -3,7 +3,7 @@
 #include <Utils.h>
 #include <Args.h>
 
-void test(int i = Arg<int>({"-a", "--a"}), int a = Arg<int>(1)) {
+void test(int i = Arg<int>({"-a", "--a"}, 5), int a = Arg<int>(1)) {
     std::cout << "test\n" << i;
 }
 
