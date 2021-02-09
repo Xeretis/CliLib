@@ -6,9 +6,8 @@
 #define CLIAPP_ARGS_H
 
 #include <initializer_list>
-#include <string>
+#include <utility>
 #include <variant>
-#include <vector>
 #include <sstream>
 #include <iostream>
 
@@ -72,9 +71,21 @@ public:
 
         if (!rawValue.empty()) {
             std::stringstream valueStream(rawValue);
-            if(valueStream >> value)
-                return value;
-            else {
+            if (valueStream >> value) {
+                size_t dividers = 0;
+                for (int curr; curr < rawValue.size(); ++curr)
+                    if (curr != 0 && rawValue[curr] == ' ' && rawValue[curr] != rawValue[curr - 1])
+                        ++dividers;
+                for (int i = 0; i < dividers; ++i) {
+                    T nextValue;
+                    if (valueStream >> nextValue)
+                        value = value + ' ' +nextValue;
+                    else {
+                        std::cerr << "\"" << rawValue << "\" is not a valid value for \"" << name << "\"";
+                        exit(0);
+                    }
+                }
+            } else {
                 std::cerr << "\"" << rawValue << "\" is not a valid value for \"" << name << "\"";
                 exit(0);
             }
@@ -85,7 +96,9 @@ public:
     }
 private:
     std::variant<std::vector<std::string>, int> identifier;
+
     T defaultValue = T();
+
     std::string name;
     std::string rawValue;
 };
