@@ -38,7 +38,7 @@ public:
                                 name = alias;
                             } else {
                                 name = arg.substr(0, equalsPos);
-                                rawValue = arg.erase(0, equalsPos + 1);
+                                rawValue = arg.substr(equalsPos + 1);
                             }
                         } else {
                             name = arg;

@@ -12,7 +12,7 @@
 #define GetCurrentDir getcwd
 #endif
 
-std::string Utils::getWorkingDir() {
+std::string Utils::getWorkingDir() { //could use filesystem but it's completely broken with my compiler so I suppose it is with others as well
     char buff[FILENAME_MAX]; //create string buffer to hold path
     GetCurrentDir( buff, FILENAME_MAX );
     std::string current_working_dir(buff);
