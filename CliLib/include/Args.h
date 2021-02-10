@@ -73,20 +73,23 @@ public:
             std::stringstream valueStream(rawValue);
             if (valueStream >> value) {
                 size_t dividers = 0;
-                for (int curr; curr < rawValue.size(); ++curr)
-                    if (curr != 0 && rawValue[curr] == ' ' && rawValue[curr] != rawValue[curr - 1])
+
+                for (int curr = 1; curr < rawValue.size(); ++curr)
+                    if (rawValue[curr] == ' ' && rawValue[curr] != rawValue[curr - 1])
                         ++dividers;
+
                 for (int i = 0; i < dividers; ++i) {
                     T nextValue;
                     if (valueStream >> nextValue)
                         value = value + ' ' +nextValue;
                     else {
-                        std::cerr << "\"" << rawValue << "\" is not a valid value for \"" << name << "\"";
+                        std::cerr << "\"" << rawValue << "\" is not a valid value for " << (identifier.index() ? "argument number " : "\"") << name << (identifier.index() ? "" : "\"");
                         exit(0);
                     }
                 }
+
             } else {
-                std::cerr << "\"" << rawValue << "\" is not a valid value for \"" << name << "\"";
+                std::cerr << "\"" << rawValue << "\" is not a valid value for " << (identifier.index() ? "argument number " : "\"") << name << (identifier.index() ? "" : "\"");
                 exit(0);
             }
         } else
