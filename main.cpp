@@ -8,6 +8,7 @@ void test(std::string i = Arg<std::string>({"-a", "--a"}, "a"), int a = Arg<int>
 }
 
 void nottest() {
+    std::cout << Utils::getWorkingDir();
     std::cout << "nottest\n";
 }
 
