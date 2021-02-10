@@ -47,7 +47,7 @@ a b c d
 `Utils::getWorkingDir()` - Returns the absolute path of where the program was run from.
 ## Known Issues
  - Bool args can only be used with numeric representations of the value. Will soon be fixed.
- - Mixing named args with positioned args can cause in some the named arg to get the value from the positioned arg (if the value of the positioned arg would be valid for the named arg) and the positioned arg to get the name of the named arg. I have not yet found a solution to this, partially due to the undefined evaluation order of function parameters. Help with this would be much appreciated.
+ - Mixing named args with positioned args can cause in some cases the named arg to get the value from the positioned arg (if the value of the positioned arg would be valid for the named arg) and the positioned arg to get the name of the named arg. I have not yet found a solution to this, partially due to the undefined evaluation order of function parameters. Help with this would be much appreciated.
  - Having multiple spaces after each other in a string arg only results in one space. Only a minor issue and will not be a priority for quite a while.
  - Algorithms used for finding the arg values are inefficient. I'm working on this.
 ## Todo
