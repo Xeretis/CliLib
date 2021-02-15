@@ -8,7 +8,7 @@
 class Command {
 public:
     template<typename Func, typename... Args>
-    explicit Command(Func function, Args... args);
+    explicit Command(Func function, Args&... args);
     void setAsDefault();
     void run(std::vector<std::string>& rawArgs) const;
     void addSubCommand(const std::string& name, const Command& newSubCommand);
@@ -65,7 +65,7 @@ void Command::addSubCommand(const std::string& name, const Command& newSubComman
 }
 
 template<typename Func, typename... Args>
-Command::Command(Func function, Args... args) : callback([function, args...](){function(args...);}) { }
+Command::Command(Func function, Args&... args) : callback([function, &args...](){function(args...);}) { }
 
 void Command::setAsDefault() {
     Parser::defaultCommand = this;
