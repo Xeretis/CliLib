@@ -3,7 +3,6 @@
 
 #include <string>
 #include <regex>
-#include <iostream>
 
 class Command {
 public:
@@ -11,9 +10,9 @@ public:
     explicit Command(Func function, Args&... args);
     void setAsDefault();
     void run(std::vector<std::string>& rawArgs) const;
-    void addSubCommand(const std::string& name, const Command& newSubCommand);
+    void addSubCommand(const std::string& name, Command* newSubCommand);
 private:
-    std::map<std::string, Command> subCommands;
+    std::map<std::string, Command*> subCommands;
     std::function<void()> callback;
 };
 
@@ -51,7 +50,7 @@ void Command::run(std::vector<std::string> &rawArgs) const {
         for (const auto& command : subCommands) {
             if (rawArgs[0] == command.first) {
                 rawArgs.erase(rawArgs.begin());
-                command.second.run(rawArgs);
+                command.second->run(rawArgs);
                 return;
             }
         }
@@ -60,7 +59,7 @@ void Command::run(std::vector<std::string> &rawArgs) const {
     callback();
 }
 
-void Command::addSubCommand(const std::string& name, const Command& newSubCommand) {
+void Command::addSubCommand(const std::string& name, Command* newSubCommand) {
     subCommands.emplace(name, newSubCommand);
 }
 
