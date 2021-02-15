@@ -6,6 +6,4 @@ set(CMAKE_EXE_LINKER_FLAGS -static)
 
 add_executable(${PROJECT_NAME} main.cpp)
 
-add_subdirectory(CliLib)
-target_include_directories(${PROJECT_NAME} PRIVATE CliLib/include)
-target_link_libraries(${PROJECT_NAME} CliLib)
+target_include_directories(${PROJECT_NAME} PRIVATE include)
