@@ -22,11 +22,11 @@ int main(int argc, char** argv) {
     def.setAsDefault();
     def.addSubCommand("tst", &tst);
 
-    OptionGroup defReq (Policy::required, "test group");
+    OptionGroup defReq (Policy::REQUIRED, "test group");
     defReq.addOption("-a", "description", "--abc");
     def.addOptionGroup(defReq);
 
-    OptionGroup defOpt (Policy::optional, "optional group");
+    OptionGroup defOpt (Policy::OPTIONAL, "OPTIONAL group");
     defOpt.addOption("-opt", "a nice description");
     defOpt.addOption("-oopt", "an other nice description");
     def.addOptionGroup(defOpt);

@@ -7,76 +7,51 @@
 #include <iostream>
 
 enum class Policy {
-    required,
-    anyOf,
-    optional
+    REQUIRED,
+    ANYOF,
+    OPTIONAL
 };
 
-struct OptionGroup {
+class OptionGroup {
+public:
+    OptionGroup(Policy p, std::string description);
+
+    void addOption(const std::string& flag, const std::string& desc, const std::string& alternativeFlag="");
+
     Policy policy;
     std::string groupDescription;
     std::map<std::string, std::pair<std::string, std::string>> options;
-    OptionGroup(Policy p, std::string description) : policy(p), groupDescription(std::move(description)) {}
-
-    void addOption(const std::string& flag, const std::string& desc, const std::string& alternativeFlag="") {
-        options[flag] = std::make_pair(desc, alternativeFlag);
-    }
 };
 
 class Command {
 public:
     template<typename Func, typename... Args>
     explicit Command(std::string description, Func function, Args&... args);
+
     void setAsDefault();
-    void run(std::vector<std::string>& rawArgs) const;
     void addSubCommand(const std::string& name, Command* newSubCommand);
     void addOptionGroup(const OptionGroup& group);
+
+    void run(std::vector<std::string>& rawArgs) const;
     bool checkFlags() const;
     void prinftHelp(const std::string& title = "") const;
+    const std::string &getDescription() const;
 
 private:
     std::map<std::string, Command*> subCommands;
     std::vector<OptionGroup> optionGroups;
     std::function<void()> callback;
     std::string description;
-public:
-    const std::string &getDescription() const;
-
-private:
 
     bool isOption(const std::string& str) const;
 };
 
 class Parser {
 public:
-    static void parse (const int argc, char const*const* argv, bool noRemainder = true, bool splitFlags = false) {
-        Parser::splitFlags = splitFlags;
-        Parser::noRemainder = noRemainder;
+    static void parse (const int argc, char const*const* argv, bool noRemainder = true, bool splitFlags = false);
+    static void run();
 
-        for (int i = 1; i < argc; ++i) {
-            std::string current = argv[i];
-            if (splitFlags && std::regex_match(current, std::regex("^(-[a-zA-Z]{2,})(=.*$|$)"))) {
-                for (int j = 1; j < current.size() && current[j - 1] != '='; ++j)
-                    tokens.push_back((current[j] != '=') ? std::string{'-', current[j]} : current.substr(j + 1));
-            } else {
-                size_t equal_pos = current.find_first_of('=');
-                if (equal_pos == std::string::npos)
-                    tokens.push_back(current);
-                else {
-                    tokens.push_back(current.substr(0, equal_pos));
-                    tokens.push_back(current.substr(equal_pos + 1));
-                }
-            }
-        }
-    }
-
-    static void run() {
-        defaultCommand->run(tokens);
-    }
-
-    static bool optionExists(const std::string &option) {
-        return std::find(tokens.begin(), tokens.end(), option) != tokens.end();
-    }
+    static bool optionExists(const std::string &option);
 
     static bool noRemainder;
     static bool splitFlags;
@@ -84,10 +59,28 @@ public:
     static Command* defaultCommand;
 };
 
-bool Parser::noRemainder;
-bool Parser::splitFlags;
-std::vector<std::string> Parser::tokens;
-Command* Parser::defaultCommand;
+//OptionGroup
+OptionGroup::OptionGroup(Policy p, std::string description) : policy(p), groupDescription(std::move(description)) {}
+
+void OptionGroup::addOption(const std::string &flag, const std::string &desc, const std::string &alternativeFlag) {
+    options[flag] = std::make_pair(desc, alternativeFlag);
+}
+
+//Command
+template<typename Func, typename... Args>
+Command::Command(std::string description, Func function, Args&... args) : description(description), callback([function, &args...](){function(args...);}) { }
+
+void Command::setAsDefault() {
+    Parser::defaultCommand = this;
+}
+
+void Command::addSubCommand(const std::string& name, Command* newSubCommand) {
+    subCommands.emplace(name, newSubCommand);
+}
+
+void Command::addOptionGroup(const OptionGroup& group) {
+    optionGroups.push_back(group);
+}
 
 void Command::run(std::vector<std::string> &rawArgs) const {
     if (!rawArgs.empty()) {
@@ -113,25 +106,14 @@ void Command::run(std::vector<std::string> &rawArgs) const {
     callback();
 }
 
-void Command::addSubCommand(const std::string& name, Command* newSubCommand) {
-    subCommands.emplace(name, newSubCommand);
-}
-
-template<typename Func, typename... Args>
-Command::Command(std::string description, Func function, Args&... args) : description(description), callback([function, &args...](){function(args...);}) { }
-
-void Command::setAsDefault() {
-    Parser::defaultCommand = this;
-}
-
 bool Command::checkFlags() const {
     bool valid = true;
     for (auto& group : optionGroups) {
         for (auto& option : group.options) {
             valid = Parser::optionExists(option.first) || Parser::optionExists(option.second.second);
-            if ((group.policy == Policy::required && !valid) || (group.policy == Policy::anyOf && valid))
+            if ((group.policy == Policy::REQUIRED && !valid) || (group.policy == Policy::ANYOF && valid))
                 break;
-            else if (group.policy == Policy::optional)
+            else if (group.policy == Policy::OPTIONAL)
                 valid = true;
         }
         if (!valid)
@@ -147,18 +129,6 @@ bool Command::checkFlags() const {
 
     }
     return valid;
-}
-
-bool Command::isOption(const std::string &str) const {
-    for (auto& group : optionGroups) {
-        for (auto& o : group.options)
-            if (str==o.first || str==o.second.second || (Parser::splitFlags && str[0] == '-')) return true;
-    }
-    return false;
-}
-
-void Command::addOptionGroup(const OptionGroup& group) {
-    optionGroups.push_back(group);
 }
 
 void Command::prinftHelp(const std::string &title) const {
@@ -195,5 +165,48 @@ void Command::prinftHelp(const std::string &title) const {
 const std::string &Command::getDescription() const {
     return description;
 }
+
+bool Command::isOption(const std::string &str) const {
+    for (auto& group : optionGroups) {
+        for (auto& o : group.options)
+            if (str==o.first || str==o.second.second || (Parser::splitFlags && str[0] == '-')) return true;
+    }
+    return false;
+}
+
+//Parser
+void Parser::parse(const int argc, const char* const* argv, bool noRemainder, bool splitFlags) {
+    Parser::splitFlags = splitFlags;
+    Parser::noRemainder = noRemainder;
+
+    for (int i = 1; i < argc; ++i) {
+        std::string current = argv[i];
+        if (splitFlags && std::regex_match(current, std::regex("^(-[a-zA-Z]{2,})(=.*$|$)"))) {
+            for (int j = 1; j < current.size() && current[j - 1] != '='; ++j)
+                tokens.push_back((current[j] != '=') ? std::string{'-', current[j]} : current.substr(j + 1));
+        } else {
+            size_t equal_pos = current.find_first_of('=');
+            if (equal_pos == std::string::npos)
+                tokens.push_back(current);
+            else {
+                tokens.push_back(current.substr(0, equal_pos));
+                tokens.push_back(current.substr(equal_pos + 1));
+            }
+        }
+    }
+}
+
+void Parser::run() {
+    defaultCommand->run(tokens);
+}
+
+bool Parser::optionExists(const std::string &option) {
+    return std::find(tokens.begin(), tokens.end(), option) != tokens.end();
+}
+
+bool Parser::noRemainder;
+bool Parser::splitFlags;
+std::vector<std::string> Parser::tokens;
+Command* Parser::defaultCommand;
 
 #endif //CLIAPP_CLILIB_HPP
