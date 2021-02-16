@@ -11,18 +11,20 @@ void test2() {
     std::cout << "Success! 2!";
 }
 
-void test3() {
-    std::cout << "Success! 3!";
+void test3(int b) {
+    std::cout << b;
 }
 
 int main(int argc, char** argv) {
     Parser::parse(argc, argv);
 
     std::vector<std::string> a;
-
     Command def ("Desc1", test1, a);
+
     Command tst ("Desc2", test2);
-    Command fsf ("Desc3", test3);
+
+    int b;
+    Command fsf ("Desc3", test3, b);
     def.setAsDefault();
     def.addSubCommand("tst", &tst);
 
@@ -36,9 +38,14 @@ int main(int argc, char** argv) {
     defOpt.addOption("-ooopt", "an other nice description");
     def.addOptionGroup(defOpt);
 
+    OptionGroup nestedTest (Policy::REQUIRED, "ayyy");
+    nestedTest.addOption("-b", "an alright description", "--bb");
+    fsf.addOptionGroup(nestedTest);
+
     tst.addSubCommand("fsf", &fsf);
 
     a = def.getMultiConverted<std::string>("-a", "--abc", {"asd"});
+    b = fsf.getConverted<int>("-b", "--bb");
 
     Parser::run();
 }
