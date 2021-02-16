@@ -7,7 +7,8 @@
 enum class Policy {
     REQUIRED,
     ANYOF,
-    OPTIONAL
+    OPTIONAL,
+    ONEOF
 };
 
 class OptionGroup {
@@ -38,7 +39,7 @@ public:
     std::vector<T> getMultiConverted(const std::string& option, const std::string& longOption = "", std::initializer_list<T> defaultInit = {});
 
     void run(std::vector<std::string>& rawArgs) const;
-    bool checkFlags() const;
+    bool validateOptions() const;
     void printHelp(const std::string& title = "") const;
     const std::string &getDescription() const;
 
@@ -103,7 +104,7 @@ void Command::run(std::vector<std::string> &rawArgs) const {
         exit(0);
     }
 
-    if (!checkFlags()) {
+    if (!validateOptions()) {
         printHelp("No/Invalid parameters provided");
         exit(0);
     }
@@ -111,14 +112,20 @@ void Command::run(std::vector<std::string> &rawArgs) const {
     callback();
 }
 
-bool Command::checkFlags() const {
+bool Command::validateOptions() const {
     bool valid = true;
     for (auto& group : optionGroups) {
+        bool wasOne = false;
         for (auto& option : group.options) {
             valid = Parser::isSet(option.first) || Parser::isSet(option.second.second);
             if ((group.policy == Policy::REQUIRED && !valid) || (group.policy == Policy::ANYOF && valid))
                 break;
-            else if (group.policy == Policy::OPTIONAL)
+            else if (group.policy == Policy::ONEOF && valid && !wasOne)
+                wasOne = true;
+            else if (group.policy == Policy::ONEOF && valid && wasOne) {
+                valid = false;
+                break;
+            } else if ((group.policy == Policy::OPTIONAL) || (group.policy == Policy::ONEOF && !valid && wasOne))
                 valid = true;
         }
         if (!valid)

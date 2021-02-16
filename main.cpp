@@ -30,9 +30,10 @@ int main(int argc, char** argv) {
     defReq.addOption("-a", "description", "--abc");
     def.addOptionGroup(defReq);
 
-    OptionGroup defOpt (Policy::ANYOF, "OPTIONAL group");
+    OptionGroup defOpt (Policy::ONEOF, "OPTIONAL group");
     defOpt.addOption("-opt", "a nice description");
     defOpt.addOption("-oopt", "an other nice description");
+    defOpt.addOption("-ooopt", "an other nice description");
     def.addOptionGroup(defOpt);
 
     tst.addSubCommand("fsf", &fsf);
