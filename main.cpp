@@ -1,8 +1,8 @@
 #include <CliLib.hpp>
 #include <iostream>
 
-void test1() {
-    std::cout << "Success!";
+void test1(int a) {
+    std::cout << a;
 }
 
 void test2() {
@@ -16,7 +16,9 @@ void test3() {
 int main(int argc, char** argv) {
     Parser::parse(argc, argv);
 
-    Command def ("Desc1", test1);
+    int a;
+
+    Command def ("Desc1", test1, a);
     Command tst ("Desc2", test2);
     Command fsf ("Desc3", test3);
     def.setAsDefault();
@@ -26,12 +28,14 @@ int main(int argc, char** argv) {
     defReq.addOption("-a", "description", "--abc");
     def.addOptionGroup(defReq);
 
-    OptionGroup defOpt (Policy::OPTIONAL, "OPTIONAL group");
+    OptionGroup defOpt (Policy::ANYOF, "OPTIONAL group");
     defOpt.addOption("-opt", "a nice description");
     defOpt.addOption("-oopt", "an other nice description");
     def.addOptionGroup(defOpt);
 
     tst.addSubCommand("fsf", &fsf);
+
+    a = def.getConverted<int>("-a", 8);
 
     Parser::run();
 }

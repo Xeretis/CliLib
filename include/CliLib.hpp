@@ -1,9 +1,7 @@
 #ifndef CLIAPP_CLILIB_HPP
 #define CLIAPP_CLILIB_HPP
 
-#include <string>
 #include <regex>
-#include <utility>
 #include <iostream>
 
 enum class Policy {
@@ -32,6 +30,10 @@ public:
     void addSubCommand(const std::string& name, Command* newSubCommand);
     void addOptionGroup(const OptionGroup& group);
 
+    std::string getRaw (const std::string& option);
+    template<typename T>
+    T getConverted(const std::string& option, T defaultValue = T());
+
     void run(std::vector<std::string>& rawArgs) const;
     bool checkFlags() const;
     void prinftHelp(const std::string& title = "") const;
@@ -48,10 +50,10 @@ private:
 
 class Parser {
 public:
-    static void parse (const int argc, char const*const* argv, bool noRemainder = true, bool splitFlags = false);
+    static void parse (const int& argc, char const*const* argv, bool noRemainder = true, bool splitFlags = false);
     static void run();
 
-    static bool optionExists(const std::string &option);
+    static bool isSet(const std::string &option);
 
     static bool noRemainder;
     static bool splitFlags;
@@ -93,7 +95,7 @@ void Command::run(std::vector<std::string> &rawArgs) const {
         }
     }
 
-    if (Parser::optionExists("--help") || Parser::optionExists("-h")) {
+    if (Parser::isSet("--help") || Parser::isSet("-h")) {
         prinftHelp("Command usage");
         exit(0);
     }
@@ -110,7 +112,7 @@ bool Command::checkFlags() const {
     bool valid = true;
     for (auto& group : optionGroups) {
         for (auto& option : group.options) {
-            valid = Parser::optionExists(option.first) || Parser::optionExists(option.second.second);
+            valid = Parser::isSet(option.first) || Parser::isSet(option.second.second);
             if ((group.policy == Policy::REQUIRED && !valid) || (group.policy == Policy::ANYOF && valid))
                 break;
             else if (group.policy == Policy::OPTIONAL)
@@ -174,8 +176,29 @@ bool Command::isOption(const std::string &str) const {
     return false;
 }
 
+std::string Command::getRaw(const std::string &option) {
+    auto itr = std::find(Parser::tokens.begin(), Parser::tokens.end(), option);
+    return (itr != Parser::tokens.end() && ++itr != Parser::tokens.end() && !isOption(*itr)) ? *itr : "";
+}
+
+template<typename T>
+T Command::getConverted(const std::string &option, T defaultValue) {
+    std::string rawValue = getRaw(option);
+
+    if (rawValue.empty())
+        return defaultValue;
+
+    std::stringstream sBuffer;
+    sBuffer << rawValue;
+
+    T convertedValue;
+    sBuffer >> convertedValue;
+
+    return convertedValue;
+}
+
 //Parser
-void Parser::parse(const int argc, const char* const* argv, bool noRemainder, bool splitFlags) {
+void Parser::parse(const int& argc, const char* const* argv, bool noRemainder, bool splitFlags) {
     Parser::splitFlags = splitFlags;
     Parser::noRemainder = noRemainder;
 
@@ -200,7 +223,7 @@ void Parser::run() {
     defaultCommand->run(tokens);
 }
 
-bool Parser::optionExists(const std::string &option) {
+bool Parser::isSet(const std::string &option) {
     return std::find(tokens.begin(), tokens.end(), option) != tokens.end();
 }
 
