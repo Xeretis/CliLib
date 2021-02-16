@@ -19,6 +19,11 @@ int main(int argc, char** argv) {
     Command fsf (test3);
     def.setAsDefault();
     def.addSubCommand("tst", &tst);
+
+    OptionGroup defReq (Policy::required, "test group");
+    defReq.addOption("-a", "description", "--abc");
+    def.addOptionGroup(defReq);
+
     tst.addSubCommand("fsf", &fsf);
 
     Parser::parse(argc, argv);
