@@ -17,7 +17,8 @@ struct OptionGroup {
     std::string groupDescription;
     std::map<std::string, std::pair<std::string, std::string>> options;
     OptionGroup(Policy p, std::string description) : policy(p), groupDescription(std::move(description)) {}
-    void addOption(const std::string& flag, const std::string& desc, std::string alternativeFlag="") {
+
+    void addOption(const std::string& flag, const std::string& desc, const std::string& alternativeFlag="") {
         options[flag] = std::make_pair(desc, alternativeFlag);
     }
 };
@@ -48,8 +49,9 @@ private:
 
 class Parser {
 public:
-    static void parse (const int argc, char const*const* argv, bool splitFlags = false) {
+    static void parse (const int argc, char const*const* argv, bool noRemainder = true, bool splitFlags = false) {
         Parser::splitFlags = splitFlags;
+        Parser::noRemainder = noRemainder;
 
         for (int i = 1; i < argc; ++i) {
             std::string current = argv[i];
@@ -66,7 +68,9 @@ public:
                 }
             }
         }
+    }
 
+    static void run() {
         defaultCommand->run(tokens);
     }
 
@@ -74,11 +78,13 @@ public:
         return std::find(tokens.begin(), tokens.end(), option) != tokens.end();
     }
 
+    static bool noRemainder;
     static bool splitFlags;
     static std::vector<std::string> tokens;
     static Command* defaultCommand;
 };
 
+bool Parser::noRemainder;
 bool Parser::splitFlags;
 std::vector<std::string> Parser::tokens;
 Command* Parser::defaultCommand;
@@ -123,15 +129,22 @@ bool Command::checkFlags() const {
     for (auto& group : optionGroups) {
         for (auto& option : group.options) {
             valid = Parser::optionExists(option.first) || Parser::optionExists(option.second.second);
-            if (group.policy == Policy::required && !valid)
-                break;
-            else if (group.policy == Policy::anyOf && valid)
+            if ((group.policy == Policy::required && !valid) || (group.policy == Policy::anyOf && valid))
                 break;
             else if (group.policy == Policy::optional)
                 valid = true;
         }
         if (!valid)
             break;
+    }
+    if (Parser::noRemainder) {
+        for (const std::string& token : Parser::tokens) {
+            if (std::regex_match(token, std::regex("^(-{1,}[a-zA-Z])")) && !isOption(token)) {
+                valid = false;
+                break;
+            }
+        }
+
     }
     return valid;
 }

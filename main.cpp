@@ -14,6 +14,8 @@ void test3() {
 }
 
 int main(int argc, char** argv) {
+    Parser::parse(argc, argv);
+
     Command def ("Desc1", test1);
     Command tst ("Desc2", test2);
     Command fsf ("Desc3", test3);
@@ -31,5 +33,5 @@ int main(int argc, char** argv) {
 
     tst.addSubCommand("fsf", &fsf);
 
-    Parser::parse(argc, argv);
+    Parser::run();
 }
