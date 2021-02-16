@@ -30,9 +30,9 @@ public:
     void addSubCommand(const std::string& name, Command* newSubCommand);
     void addOptionGroup(const OptionGroup& group);
 
-    std::string getRaw (const std::string& option);
+    std::string getRaw (const std::string& option, const std::string& longOption = "");
     template<typename T>
-    T getConverted(const std::string& option, T defaultValue = T());
+    T getConverted(const std::string& option, const std::string& longOption = "", T defaultValue = T());
 
     void run(std::vector<std::string>& rawArgs) const;
     bool checkFlags() const;
@@ -176,16 +176,22 @@ bool Command::isOption(const std::string &str) const {
     return false;
 }
 
-std::string Command::getRaw(const std::string &option) {
+std::string Command::getRaw(const std::string &option, const std::string& longOption) {
     auto itr = std::find(Parser::tokens.begin(), Parser::tokens.end(), option);
-    return (itr != Parser::tokens.end() && ++itr != Parser::tokens.end() && !isOption(*itr)) ? *itr : "";
+    auto itrLong = std::find(Parser::tokens.begin(), Parser::tokens.end(), longOption);
+    if (itr != Parser::tokens.end() && ++itr != Parser::tokens.end() && !isOption(*itr))
+        return *itr;
+    else if (itrLong != Parser::tokens.end() && ++itrLong != Parser::tokens.end() && !isOption(*itrLong))
+        return *itrLong;
+    else
+        return "";
 }
 
 template<typename T>
-T Command::getConverted(const std::string &option, T defaultValue) {
-    std::string rawValue = getRaw(option);
+T Command::getConverted(const std::string &option, const std::string& longOption, T defaultValue) {
+    std::string rawValue = getRaw(option, longOption);
 
-    if (rawValue.empty())
+    if (rawValue.empty() && !Parser::isSet(option))
         return defaultValue;
 
     std::stringstream sBuffer;
@@ -193,6 +199,34 @@ T Command::getConverted(const std::string &option, T defaultValue) {
 
     T convertedValue;
     sBuffer >> convertedValue;
+
+    return convertedValue;
+}
+
+template<>
+std::string Command::getConverted(const std::string &option, const std::string& longOption, std::string defaultValue) {
+    std::string rawValue = getRaw(option, longOption);
+
+    if (rawValue.empty())
+        return defaultValue;
+    else
+        return rawValue;
+}
+
+template<>
+bool Command::getConverted(const std::string &option, const std::string& longOption, bool defaultValue) {
+    std::string rawValue = getRaw(option, longOption);
+
+    if (rawValue.empty() && !(Parser::isSet(option) || Parser::isSet(longOption)))
+        return defaultValue;
+    else if (rawValue.empty())
+        return true;
+
+    std::stringstream sBuffer;
+    sBuffer << rawValue;
+
+    bool convertedValue;
+    sBuffer >> std::boolalpha >> convertedValue;
 
     return convertedValue;
 }

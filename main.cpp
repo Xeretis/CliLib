@@ -1,7 +1,7 @@
 #include <CliLib.hpp>
 #include <iostream>
 
-void test1(int a) {
+void test1(std::string a) {
     std::cout << a;
 }
 
@@ -16,7 +16,7 @@ void test3() {
 int main(int argc, char** argv) {
     Parser::parse(argc, argv);
 
-    int a;
+    std::string a;
 
     Command def ("Desc1", test1, a);
     Command tst ("Desc2", test2);
@@ -35,7 +35,7 @@ int main(int argc, char** argv) {
 
     tst.addSubCommand("fsf", &fsf);
 
-    a = def.getConverted<int>("-a", 8);
+    a = def.getConverted<std::string>("-a", "--abc");
 
     Parser::run();
 }
