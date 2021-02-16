@@ -31,12 +31,15 @@ public:
     void addOptionGroup(const OptionGroup& group);
 
     std::string getRaw (const std::string& option, const std::string& longOption = "");
+    std::vector<std::string> getMultiRaw(const std::string& option, const std::string& longOption = "");
     template<typename T>
     T getConverted(const std::string& option, const std::string& longOption = "", T defaultValue = T());
+    template<typename T>
+    std::vector<T> getMultiConverted(const std::string& option, const std::string& longOption = "", std::initializer_list<T> defaultInit = {});
 
     void run(std::vector<std::string>& rawArgs) const;
     bool checkFlags() const;
-    void prinftHelp(const std::string& title = "") const;
+    void printHelp(const std::string& title = "") const;
     const std::string &getDescription() const;
 
 private:
@@ -96,12 +99,12 @@ void Command::run(std::vector<std::string> &rawArgs) const {
     }
 
     if (Parser::isSet("--help") || Parser::isSet("-h")) {
-        prinftHelp("Command usage");
+        printHelp("Command usage");
         exit(0);
     }
 
     if (!checkFlags()) {
-        prinftHelp("No/Invalid parameters provided");
+        printHelp("No/Invalid parameters provided");
         exit(0);
     }
 
@@ -133,7 +136,7 @@ bool Command::checkFlags() const {
     return valid;
 }
 
-void Command::prinftHelp(const std::string &title) const {
+void Command::printHelp(const std::string &title) const {
     if (!title.empty()) {
         for (char i : title)
             std::cout << "-";
@@ -187,6 +190,19 @@ std::string Command::getRaw(const std::string &option, const std::string& longOp
         return "";
 }
 
+std::vector<std::string> Command::getMultiRaw(const std::string &option, const std::string &longOption) {
+    std::vector<std::string> params;
+    auto itr = std::find(Parser::tokens.begin(), Parser::tokens.end(), option);
+    auto itrLong = std::find(Parser::tokens.begin(), Parser::tokens.end(), longOption);
+    while (itr != Parser::tokens.end() && ++itr != Parser::tokens.end() && !isOption(*itr)) {
+        params.push_back(*itr);
+    }
+    while (itrLong != Parser::tokens.end() && ++itrLong != Parser::tokens.end() && !isOption(*itrLong)) {
+        params.push_back(*itrLong);
+    }
+    return params;
+}
+
 template<typename T>
 T Command::getConverted(const std::string &option, const std::string& longOption, T defaultValue) {
     std::string rawValue = getRaw(option, longOption);
@@ -229,6 +245,58 @@ bool Command::getConverted(const std::string &option, const std::string& longOpt
     sBuffer >> std::boolalpha >> convertedValue;
 
     return convertedValue;
+}
+
+template<typename T>
+std::vector<T> Command::getMultiConverted(const std::string &option, const std::string &longOption, std::initializer_list<T> defaultInit) {
+    std::vector<std::string> params = getMultiRaw(option, longOption);
+    std::vector<T> convertedParams;
+
+    if (params.empty())
+        return defaultInit;
+
+    std::stringstream sBuffer;
+
+    T value;
+    for (std::string param : params) {
+        sBuffer << param << " ";
+        sBuffer >> value;
+        convertedParams.push_back(value);
+    }
+
+    return convertedParams;
+}
+
+template<>
+std::vector<std::string> Command::getMultiConverted(const std::string &option, const std::string &longOption, std::initializer_list<std::string> defaultInit) {
+    std::vector<std::string> convertedParams = getMultiRaw(option, longOption);
+
+    if (convertedParams.empty())
+        return defaultInit;
+
+    return convertedParams;
+}
+
+template<>
+std::vector<bool> Command::getMultiConverted(const std::string &option, const std::string &longOption, std::initializer_list<bool> defaultInit) {
+    std::vector<std::string> params = getMultiRaw(option, longOption);
+    std::vector<bool> convertedParams;
+
+    if (params.empty() && !(Parser::isSet(option) || Parser::isSet(longOption)))
+        return defaultInit;
+    else if (params.empty())
+        return {true};
+
+    std::stringstream sBuffer;
+
+    bool value;
+    for (const std::string& param : params) {
+        sBuffer << param << " ";
+        sBuffer >> std::boolalpha >> value;
+        convertedParams.push_back(value);
+    }
+
+    return convertedParams;
 }
 
 //Parser

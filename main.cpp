@@ -1,8 +1,10 @@
 #include <CliLib.hpp>
 #include <iostream>
 
-void test1(std::string a) {
-    std::cout << a;
+void test1(std::vector<std::string> a) {
+    for (std::string i : a) {
+        std::cout << i << "\t";
+    }
 }
 
 void test2() {
@@ -16,7 +18,7 @@ void test3() {
 int main(int argc, char** argv) {
     Parser::parse(argc, argv);
 
-    std::string a;
+    std::vector<std::string> a;
 
     Command def ("Desc1", test1, a);
     Command tst ("Desc2", test2);
@@ -24,7 +26,7 @@ int main(int argc, char** argv) {
     def.setAsDefault();
     def.addSubCommand("tst", &tst);
 
-    OptionGroup defReq (Policy::REQUIRED, "test group");
+    OptionGroup defReq (Policy::OPTIONAL, "test group");
     defReq.addOption("-a", "description", "--abc");
     def.addOptionGroup(defReq);
 
@@ -35,7 +37,7 @@ int main(int argc, char** argv) {
 
     tst.addSubCommand("fsf", &fsf);
 
-    a = def.getConverted<std::string>("-a", "--abc");
+    a = def.getMultiConverted<std::string>("-a", "--abc", {"asd"});
 
     Parser::run();
 }
