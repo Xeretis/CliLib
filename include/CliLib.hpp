@@ -17,7 +17,7 @@ struct OptionGroup {
     std::string groupDescription;
     std::map<std::string, std::pair<std::string, std::string>> options;
     OptionGroup(Policy p, std::string description) : policy(p), groupDescription(std::move(description)) {}
-    void addOption(const std::string& flag, const std::string& desc = "", std::string alternativeFlag="") {
+    void addOption(const std::string& flag, const std::string& desc, std::string alternativeFlag="") {
         options[flag] = std::make_pair(desc, alternativeFlag);
     }
 };
@@ -25,17 +25,23 @@ struct OptionGroup {
 class Command {
 public:
     template<typename Func, typename... Args>
-    explicit Command(Func function, Args&... args);
+    explicit Command(std::string description, Func function, Args&... args);
     void setAsDefault();
     void run(std::vector<std::string>& rawArgs) const;
     void addSubCommand(const std::string& name, Command* newSubCommand);
     void addOptionGroup(const OptionGroup& group);
     bool checkFlags() const;
+    void prinftHelp(const std::string& title = "") const;
 
 private:
     std::map<std::string, Command*> subCommands;
     std::vector<OptionGroup> optionGroups;
     std::function<void()> callback;
+    std::string description;
+public:
+    const std::string &getDescription() const;
+
+private:
 
     bool isOption(const std::string& str) const;
 };
@@ -88,8 +94,13 @@ void Command::run(std::vector<std::string> &rawArgs) const {
         }
     }
 
+    if (Parser::optionExists("--help") || Parser::optionExists("-h")) {
+        prinftHelp("Command usage");
+        exit(0);
+    }
+
     if (!checkFlags()) {
-        std::cerr << "No/Invalid parameters provided";
+        prinftHelp("No/Invalid parameters provided");
         exit(0);
     }
 
@@ -101,28 +112,28 @@ void Command::addSubCommand(const std::string& name, Command* newSubCommand) {
 }
 
 template<typename Func, typename... Args>
-Command::Command(Func function, Args&... args) : callback([function, &args...](){function(args...);}) { }
+Command::Command(std::string description, Func function, Args&... args) : description(description), callback([function, &args...](){function(args...);}) { }
 
 void Command::setAsDefault() {
     Parser::defaultCommand = this;
 }
 
 bool Command::checkFlags() const {
-        bool valid = true;
-        for (auto& group : optionGroups) {
-            for (auto& option : group.options) {
-                valid = Parser::optionExists(option.first) || Parser::optionExists(option.second.second);
-                if (group.policy == Policy::required && !valid)
-                    break;
-                else if (group.policy == Policy::anyOf && valid)
-                    break;
-                else if (group.policy == Policy::optional)
-                    valid = true;
-            }
-            if (!valid)
+    bool valid = true;
+    for (auto& group : optionGroups) {
+        for (auto& option : group.options) {
+            valid = Parser::optionExists(option.first) || Parser::optionExists(option.second.second);
+            if (group.policy == Policy::required && !valid)
                 break;
+            else if (group.policy == Policy::anyOf && valid)
+                break;
+            else if (group.policy == Policy::optional)
+                valid = true;
         }
-        return valid;
+        if (!valid)
+            break;
+    }
+    return valid;
 }
 
 bool Command::isOption(const std::string &str) const {
@@ -135,6 +146,41 @@ bool Command::isOption(const std::string &str) const {
 
 void Command::addOptionGroup(const OptionGroup& group) {
     optionGroups.push_back(group);
+}
+
+void Command::prinftHelp(const std::string &title) const {
+    if (!title.empty()) {
+        for (char i : title)
+            std::cout << "-";
+        std::cout << "\n" << title << "\n";
+        for (char i : title)
+            std::cout << "-";
+        std::cout << "\n";
+    }
+
+    std::cout << "Command description: " << description << "\n\n";
+
+    if (!subCommands.empty()) {
+        std::cout << "Subcommands: (Use --help on the subcommand for more information)\n";
+        for (const auto& command : subCommands) {
+            std::cout << "\t" << command.first << " - " << command.second->getDescription() << "\n";
+        }
+        std::cout << "\n";
+    }
+
+    if (!optionGroups.empty()) {
+        std::cout << "Options:";
+
+        for (auto& group : optionGroups) {
+            std::cout << "\n[" + group.groupDescription + "]\n";
+            for (auto& option : group.options)
+                std::cout << "\t" << option.first << (option.second.second.empty() ? "" : ", " + option.second.second) << " - " << option.second.first << std::endl;
+        }
+    }
+}
+
+const std::string &Command::getDescription() const {
+    return description;
 }
 
 #endif //CLIAPP_CLILIB_HPP

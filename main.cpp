@@ -14,15 +14,20 @@ void test3() {
 }
 
 int main(int argc, char** argv) {
-    Command def (test1);
-    Command tst (test2);
-    Command fsf (test3);
+    Command def ("Desc1", test1);
+    Command tst ("Desc2", test2);
+    Command fsf ("Desc3", test3);
     def.setAsDefault();
     def.addSubCommand("tst", &tst);
 
     OptionGroup defReq (Policy::required, "test group");
     defReq.addOption("-a", "description", "--abc");
     def.addOptionGroup(defReq);
+
+    OptionGroup defOpt (Policy::optional, "optional group");
+    defOpt.addOption("-opt", "a nice description");
+    defOpt.addOption("-oopt", "an other nice description");
+    def.addOptionGroup(defOpt);
 
     tst.addSubCommand("fsf", &fsf);
 
