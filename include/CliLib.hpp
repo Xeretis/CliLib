@@ -353,7 +353,7 @@ bool Parser::isSet(const std::string &option) {
 }
 
 bool Parser::hasOptionSyntax(const std::string& str) {
-    return std::regex_match(str, std::regex("^(-{1,2}[a-zA-Z]{1,})"));
+    return std::regex_match(str, std::regex("^(-{1,2}[a-zA-Z0-9]{1,})"));
 }
 
 bool Parser::noRemainder;

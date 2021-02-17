@@ -1,8 +1,8 @@
 #include <CliLib.hpp>
 #include <iostream>
 
-void test1(std::vector<std::string> a) {
-    for (std::string i : a) {
+void test1(std::vector<int> a) {
+    for (auto i : a) {
         std::cout << i << "\t";
     }
 }
@@ -18,7 +18,7 @@ void test3(int b) {
 int main(int argc, char** argv) {
     Parser::parse(argc, argv);
 
-    std::vector<std::string> a = Parser::getMultiConverted<std::string>("-a", "--abc", {"asd"});;
+    std::vector<int> a = Parser::getMultiConverted<int>("-a", "--abc");;
     Command def ("Desc1", test1, a);
 
     Command tst ("Desc2", test2);
