@@ -50,13 +50,13 @@ public:
     static void parse (const int& argc, char const*const* argv, bool noRemainder = true, bool splitFlags = false);
     static void run();
 
-    static bool isSet(const std::string &option);
-    static bool hasOptionSyntax(const std::string& str);
-
     template<typename T>
     static T getConverted(const std::string& option, const std::string& longOption = "", T defaultValue = T());
     template<typename T>
     static std::vector<T> getMultiConverted(const std::string& option, const std::string& longOption = "", std::initializer_list<T> defaultInit = {});
+
+    static bool isSet(const std::string &option);
+    static bool hasOptionSyntax(const std::string& str);
 
     static bool noRemainder;
     static bool splitFlags;
@@ -212,14 +212,6 @@ void Parser::run() {
     defaultCommand->run(tokens);
 }
 
-bool Parser::isSet(const std::string &option) {
-    return std::find(tokens.begin(), tokens.end(), option) != tokens.end();
-}
-
-bool Parser::hasOptionSyntax(const std::string& str) {
-    return std::regex_match(str, std::regex("^(-{1,2}[a-zA-Z]{1,})"));
-}
-
 std::string Parser::getRaw(const std::string &option, const std::string &longOption) {
     auto itr = std::find(tokens.begin(), tokens.end(), option);
     auto itrLong = std::find(tokens.begin(), tokens.end(), longOption);
@@ -354,6 +346,14 @@ std::vector<bool> Parser::getMultiConverted(const std::string &option, const std
     }
 
     return convertedParams;
+}
+
+bool Parser::isSet(const std::string &option) {
+    return std::find(tokens.begin(), tokens.end(), option) != tokens.end();
+}
+
+bool Parser::hasOptionSyntax(const std::string& str) {
+    return std::regex_match(str, std::regex("^(-{1,2}[a-zA-Z]{1,})"));
 }
 
 bool Parser::noRemainder;
