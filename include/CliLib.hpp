@@ -108,7 +108,7 @@ void Command::run(std::vector<std::string> &rawArgs) const {
     }
 
     if (!validateOptions()) {
-        printHelp("No/Invalid parameters provided");
+        std::cerr << "No/Invalid parameters provided (Use --help for more information)";
         exit(0);
     }
 
@@ -116,17 +116,12 @@ void Command::run(std::vector<std::string> &rawArgs) const {
 }
 
 bool Command::validateOptions() const {
+    if (Parser::noRemainder)
+        for (const std::string& token : Parser::tokens)
+            if (Parser::hasOptionSyntax(token) && !isOption(token))
+                return false;
+
     bool valid = true;
-
-    if (Parser::noRemainder) {
-        for (const std::string& token : Parser::tokens) {
-            if (Parser::hasOptionSyntax(token) && !isOption(token)) {
-                valid = false;
-                break;
-            }
-        }
-
-    }
 
     for (const auto& group : optionGroups) {
         bool wasOne = false;
@@ -253,8 +248,12 @@ template<typename T>
 T Parser::getConverted(const std::string &option, const std::string &longOption, T defaultValue) {
     std::string rawValue = getRaw(option, longOption);
 
-    if (rawValue.empty() && !isSet(option))
+    if (rawValue.empty() && !(isSet(option) || isSet(longOption)))
         return defaultValue;
+    else if (rawValue.empty()) {
+        std::cerr << "No value provided for \"" << option << "/" << longOption << "\"";
+        exit(0);
+    }
 
     std::stringstream sBuffer;
     sBuffer << rawValue;
@@ -269,10 +268,14 @@ template<>
 std::string Parser::getConverted(const std::string &option, const std::string& longOption, std::string defaultValue) {
     std::string rawValue = getRaw(option, longOption);
 
-    if (rawValue.empty())
+    if (rawValue.empty() && !(isSet(option) || isSet(longOption)))
         return defaultValue;
-    else
-        return rawValue;
+    else if (rawValue.empty()) {
+        std::cerr << "No value provided for \"" << option << "/" << longOption << "\"";
+        exit(0);
+    }
+
+    return rawValue;
 }
 
 template<>
@@ -298,8 +301,12 @@ std::vector<T> Parser::getMultiConverted(const std::string &option, const std::s
     std::vector<std::string> params = getMultiRaw(option, longOption);
     std::vector<T> convertedParams;
 
-    if (params.empty())
+    if (params.empty() && !(isSet(option) || isSet(longOption)))
         return defaultInit;
+    else if (params.empty()) {
+        std::cerr << "No value provided for \"" << option << "/" << longOption << "\"";
+        exit(0);
+    }
 
     std::stringstream sBuffer;
 
@@ -317,8 +324,12 @@ template<>
 std::vector<std::string> Parser::getMultiConverted(const std::string &option, const std::string &longOption, std::initializer_list<std::string> defaultInit) {
     std::vector<std::string> convertedParams = getMultiRaw(option, longOption);
 
-    if (convertedParams.empty())
+    if (convertedParams.empty() && !(isSet(option) || isSet(longOption)))
         return defaultInit;
+    else if (convertedParams.empty()) {
+        std::cerr << "No value provided for \"" << option << "/" << longOption << "\"";
+        exit(0);
+    }
 
     return convertedParams;
 }

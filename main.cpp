@@ -23,7 +23,7 @@ int main(int argc, char** argv) {
 
     Command tst ("Desc2", test2);
 
-    int b = Parser::getConverted<int>("-c", "--bb");
+    int b = Parser::getConverted<int>("-b", "--bb");
     Command fsf ("Desc3", test3, b);
     def.setAsDefault();
     def.addSubCommand("tst", &tst);
