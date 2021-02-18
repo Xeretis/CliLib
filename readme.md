@@ -25,7 +25,7 @@ Optional parameters:
  - `bool splitFlags = false`: Use this to decide wither to split multi character short flags or not. For example `-abc` would be handled as `-a -b -c` if enabled.
 
 ## Getting option values
-For getting option values there are two options: get a single value or a multi value.
+There are two ways to get option values: get a single value or a multi value.
 
 To get a single value use the `Parser::getConverted<T>(const std::string& option, const std::string& longOption = "", T defaultValue = T())` method.
 
