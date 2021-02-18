@@ -1,7 +1,7 @@
 # CliLib
 A library aiming to be an easy to use and simple argument parser for CLI applications.
 
-Some the code is from a repository called [MiniCommander](https://github.com/MichaelGrupp/MiniCommander). Looking back it might have been appropriate to fork that repository but anyways, check it out if you are interested in it.
+This project was heavily inspired by a repository called [MiniCommander](https://github.com/MichaelGrupp/MiniCommander) and it uses the same parsing algorithm. Looking back it might have been appropriate to fork that repository but anyways, check it out if you are interested in it.
 # Features
  - [x] Default option and unlimited suboptions with descriptions
  - [x] Option to ignore unrecognised commands or throw an error
@@ -25,7 +25,7 @@ Optional parameters:
  - `bool splitFlags = false`: Use this to decide wither to split multi character short flags or not. For example `-abc` would be handled as `-a -b -c` if enabled.
 
 ## Getting option values
-For getting option values there are two options: get a single value or a multi value.
+There are two ways to get option values: get a single value or a multi value.
 
 To get a single value use the `Parser::getConverted<T>(const std::string& option, const std::string& longOption = "", T defaultValue = T())` method.
 

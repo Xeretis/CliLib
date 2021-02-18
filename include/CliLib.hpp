@@ -100,6 +100,10 @@ void Command::run(std::vector<std::string> &rawArgs) const {
                 return;
             }
         }
+        if (!Parser::hasOptionSyntax(rawArgs[0])) {
+            std::cerr << "\"" << rawArgs[0] << "\" is not a valid command";
+            exit(0);
+        }
     }
 
     if (Parser::isSet("--help") || Parser::isSet("-h")) {
