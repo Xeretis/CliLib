@@ -15,7 +15,7 @@ class OptionGroup {
 public:
     OptionGroup(Policy p, std::string description);
 
-    void addOption(const std::string& flag, const std::string& desc, const std::string& alternativeFlag="");
+    void addOption(const std::string& option, const std::string& desc, const std::string& longOption="");
 
     Policy policy;
     std::string groupDescription;
@@ -71,8 +71,8 @@ private:
 //OptionGroup
 OptionGroup::OptionGroup(Policy p, std::string description) : policy(p), groupDescription(std::move(description)) {}
 
-void OptionGroup::addOption(const std::string &flag, const std::string &desc, const std::string &alternativeFlag) {
-    options[flag] = std::make_pair(desc, alternativeFlag);
+void OptionGroup::addOption(const std::string &option, const std::string &desc, const std::string &longOption) {
+    options[option] = std::make_pair(desc, longOption);
 }
 
 //Command
