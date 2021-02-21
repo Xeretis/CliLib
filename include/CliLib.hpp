@@ -3,6 +3,7 @@
 
 #include <regex>
 #include <iostream>
+#include <utility>
 
 enum class Policy {
     REQUIRED,
@@ -30,6 +31,7 @@ public:
     void setAsDefault();
     void addSubCommand(const std::string& name, Command* newSubCommand);
     void addOptionGroup(const OptionGroup& group);
+    void setNoReaminder(bool newNoRemainder);
 
     void run(std::vector<std::string>& rawArgs) const;
     bool validateOptions() const;
@@ -41,13 +43,14 @@ private:
     std::vector<OptionGroup> optionGroups;
     std::function<void()> callback;
     std::string description;
+    bool noRemainder = true;
 
     bool isOption(const std::string& str) const;
 };
 
 class Parser {
 public:
-    static void parse (const int& argc, char const*const* argv, bool noRemainder = true, bool splitFlags = false);
+    static void parse (const int& argc, char const*const* argv, bool splitFlags = false);
     static void run();
 
     template<typename T>
@@ -58,7 +61,6 @@ public:
     static bool isSet(const std::string &option);
     static bool hasOptionSyntax(const std::string& str);
 
-    static bool noRemainder;
     static bool splitFlags;
     static std::vector<std::string> tokens;
     static Command* defaultCommand;
@@ -77,7 +79,7 @@ void OptionGroup::addOption(const std::string &option, const std::string &desc, 
 
 //Command
 template<typename Func, typename... Args>
-Command::Command(std::string description, Func function, Args&... args) : description(description), callback([function, &args...](){function(args...);}) { }
+Command::Command(std::string description, Func function, Args&... args) : description(std::move(description)), callback([function, &args...](){function(args...);}) { }
 
 void Command::setAsDefault() {
     Parser::defaultCommand = this;
@@ -89,6 +91,10 @@ void Command::addSubCommand(const std::string& name, Command* newSubCommand) {
 
 void Command::addOptionGroup(const OptionGroup& group) {
     optionGroups.push_back(group);
+}
+
+void Command::setNoReaminder(bool newNoRemainder) {
+    noRemainder = newNoRemainder;
 }
 
 void Command::run(std::vector<std::string> &rawArgs) const {
@@ -120,7 +126,7 @@ void Command::run(std::vector<std::string> &rawArgs) const {
 }
 
 bool Command::validateOptions() const {
-    if (Parser::noRemainder)
+    if (noRemainder)
         for (const std::string& token : Parser::tokens)
             if (Parser::hasOptionSyntax(token) && !isOption(token))
                 return false;
@@ -191,9 +197,8 @@ bool Command::isOption(const std::string &str) const {
 }
 
 //Parser
-void Parser::parse(const int& argc, const char* const* argv, bool noRemainder, bool splitFlags) {
+void Parser::parse(const int& argc, const char* const* argv, bool splitFlags) {
     Parser::splitFlags = splitFlags;
-    Parser::noRemainder = noRemainder;
 
     for (int i = 1; i < argc; ++i) {
         std::string current = argv[i];
@@ -360,7 +365,6 @@ bool Parser::hasOptionSyntax(const std::string& str) {
     return std::regex_match(str, std::regex("^(-{1,2}[a-zA-Z0-9]{1,})"));
 }
 
-bool Parser::noRemainder;
 bool Parser::splitFlags;
 std::vector<std::string> Parser::tokens;
 Command* Parser::defaultCommand;

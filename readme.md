@@ -21,7 +21,6 @@ This project was heavily inspired by a repository called [MiniCommander](https:/
 Start your main function with parsing the program arguments. For this use the `Parser::parse(const int& argc, char const*const* argv, bool noRemainder = true, bool splitFlags = false)` method.
 
 Optional parameters:
- - `bool noReaminder = true`: Use this to decide wether to throw an error on unrecignized commands or not. (Possibly getting moved to commands in the near future)
  - `bool splitFlags = false`: Use this to decide wither to split multi character short flags or not. For example `-abc` would be handled as `-a -b -c` if enabled.
 
 ## Getting option values
@@ -47,6 +46,8 @@ To make a command make an instance of type `Command`. Each command requires a de
 To add a subcommand use the `.addSubCommand(const std::string& name, Command* newSubCommand)` method. newSubCommand must be the address of a stack allocated command.
 
 To add an option group use the `.addOptionGroup(const OptionGroup& newOptionGroup)` Only add an option group, that is already set up with all of it's options.
+
+Each command uses a "noRemainder" policy by default, meaning that unrecognized arguments will throw an error. To turn this off use the `.setNoRemainder(bool newNoRemainder)` method with `false` as an argument. This change will not apply to subcommands. 
 
 ### Option groups
 
