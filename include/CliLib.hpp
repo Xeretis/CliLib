@@ -107,7 +107,7 @@ void Command::run(std::vector<std::string> &rawArgs) const {
             }
         }
         if (!Parser::hasOptionSyntax(rawArgs[0])) {
-            std::cerr << "\"" << rawArgs[0] << "\" is not a valid command";
+            std::cerr << "\"" << rawArgs[0] << "\" is not a valid command\n";
             exit(0);
         }
     }
@@ -118,7 +118,7 @@ void Command::run(std::vector<std::string> &rawArgs) const {
     }
 
     if (!validateOptions()) {
-        std::cerr << "No/Invalid parameters provided (Use --help for more information)";
+        std::cerr << "No/Invalid parameters provided (Use --help for more information)\n";
         exit(0);
     }
 
@@ -252,7 +252,7 @@ T Parser::getConverted(const std::string &option, const std::string &longOption,
     if (rawValue.empty() && !(isSet(option) || isSet(longOption)))
         return defaultValue;
     else if (rawValue.empty()) {
-        std::cerr << "No value provided for \"" << option << "/" << longOption << "\"";
+        std::cerr << "No value provided for \"" << option << "/" << longOption << "\"\n";
         exit(0);
     }
 
@@ -272,7 +272,7 @@ std::string Parser::getConverted(const std::string &option, const std::string& l
     if (rawValue.empty() && !(isSet(option) || isSet(longOption)))
         return defaultValue;
     else if (rawValue.empty()) {
-        std::cerr << "No value provided for \"" << option << "/" << longOption << "\"";
+        std::cerr << "No value provided for \"" << option << "/" << longOption << "\"\n";
         exit(0);
     }
 
@@ -305,7 +305,7 @@ std::vector<T> Parser::getMultiConverted(const std::string &option, const std::s
     if (params.empty() && !(isSet(option) || isSet(longOption)))
         return defaultInit;
     else if (params.empty()) {
-        std::cerr << "No value provided for \"" << option << "/" << longOption << "\"";
+        std::cerr << "No value provided for \"" << option << "/" << longOption << "\"\n";
         exit(0);
     }
 
@@ -328,7 +328,7 @@ std::vector<std::string> Parser::getMultiConverted(const std::string &option, co
     if (convertedParams.empty() && !(isSet(option) || isSet(longOption)))
         return defaultInit;
     else if (convertedParams.empty()) {
-        std::cerr << "No value provided for \"" << option << "/" << longOption << "\"";
+        std::cerr << "No value provided for \"" << option << "/" << longOption << "\"\n";
         exit(0);
     }
 
