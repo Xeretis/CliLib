@@ -45,7 +45,7 @@ To make a command make an instance of type `Command`. Each command requires a de
 
 To add a subcommand use the `.addSubCommand(const std::string& name, Command* newSubCommand)` method. newSubCommand must be the address of a stack allocated command.
 
-To add an option group use the `.addOptionGroup(const OptionGroup& newOptionGroup)` Only add an option group, that is already set up with all of it's options.
+To add an option group use the `.addOptionGroup(OptionGroup* newOptionGroup)` Only add an option group, that is already set up with all of it's options. Do not use a dynamically allocated pointer.
 
 Each command uses a "noRemainder" policy by default, meaning that unrecognized arguments will throw an error. To turn this off use the `.setNoRemainder(bool newNoRemainder)` method with `false` as an argument. This change will not apply to subcommands. 
 
@@ -53,7 +53,7 @@ Each command uses a "noRemainder" policy by default, meaning that unrecognized a
 
 To make an option group make an instance of type `OptionGroup`. Each option group requires a policy and a description. The policy can be any value of `enum class Policy`.
 
-To add an option use the `.addOption(const std::string& option, const std::string& desc, const std::string& longOption="")` method.
+To add an option use the `.addOption(const std::string& option, const std::string& desc, const std::string& longOption="")` or the `.addOption(Option* newOption)` method. (In the second case the Option has to be dynamically allocated)
 
 Optional parameters:
  - `const std::string& longOption=""`: Use this to set the long version of the flag (the one the starts with --).
