@@ -191,7 +191,7 @@ const std::string &Command::getDescription() const {
 bool Command::isOption(const std::string &str) const {
     for (const auto& group : optionGroups) {
         for (const auto& o : group.options)
-            if (str==o.first || str==o.second.second || (Parser::splitFlags && str[0] == '-')) return true;
+            if (str==o.first || str==o.second.second) return true;
     }
     return false;
 }
