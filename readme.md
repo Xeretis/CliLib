@@ -13,8 +13,8 @@ This project was heavily inspired by a repository called [MiniCommander](https:/
  - [x] Only C++11 required
 # TODO
  - [ ] Make examples
- - [ ] Add windows type flag support
  - [ ] Add option validators
+ - [ ] Maybe add windows type flag support (?)
  - [ ] Maybe improve option detection (?)
 # Usage
 Start your main function with parsing the program arguments. For this use the `Parser::parse(const int& argc, char const*const* argv, bool noRemainder = true, bool splitFlags = false)` method.
