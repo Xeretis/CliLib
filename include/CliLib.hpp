@@ -25,6 +25,9 @@ class OptionGroup {
 public:
     OptionGroup(Policy p, std::string description);
 
+    template<typename...Opts>
+    OptionGroup(Policy p, std::string description, Opts... opts);
+
     void addOption(const std::string& opt, const std::string& desc, const std::string& longOption="");
     void addOption(Option* newOption);
 
@@ -87,6 +90,13 @@ Option::Option(std::string opt, std::string desc, std::string longOption) : opt(
 
 //OptionGroup
 OptionGroup::OptionGroup(Policy p, std::string description) : policy(p), groupDescription(std::move(description)) {}
+
+template<typename... Opts>
+OptionGroup::OptionGroup(Policy p, std::string description, Opts... opts) : policy(p), groupDescription(std::move(description)) {
+    for (auto opt : {opts...}) {
+        options.template emplace_back(opt);
+    }
+}
 
 void OptionGroup::addOption(const std::string &opt, const std::string &desc, const std::string &longOption) {
     options.emplace_back(new Option(opt, desc, longOption));
