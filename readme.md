@@ -58,5 +58,7 @@ Optional parameters:
  - `const std::string& longOption=""`: Use this to set the long version of the flag (the one the starts with --).
    
 *Note: Technically the options can be anything that starts with '-' so option and longOption could be swithed up, or there could even be two options with '-', but they are originally meant to be used with a short and a long version. (Doing otherwise may cause problems in the future)*
+#### Options
+The constructor of the `Option` class requires the option name (short version), the description and optioanally the long name. (See: first overload of the `.addOption` method in option groups, the parameters are the same)
 ## Starting the program
 Starting the program can be done with `Parser::run()`. This will decide wether the program arguments are valid and wich command is to be used and it will run it too.
