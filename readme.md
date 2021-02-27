@@ -4,6 +4,7 @@ A library aiming to be an easy to use and simple argument parser for CLI applica
 This project was heavily inspired by a repository called [MiniCommander](https://github.com/MichaelGrupp/MiniCommander) and it uses the same parsing algorithm (for now at least). Looking back it might have been appropriate to fork that repository but anyways, check it out if you are interested in it.
 # Features
  - [x] Default option and unlimited suboptions with descriptions
+ - [x] Command aliases
  - [x] Option to ignore unrecognised commands or throw an error
  - [x] Single and multiple parameters of any type
  - [x] Split short flags (unix flags) option
@@ -42,7 +43,7 @@ Optional parameters:
 ### Commands
 To make a command make an instance of type `Command`. Each command requires a description, a corresponding function, and all arguments of the function (mainly variables previously assigned a value using either `Parser::getConverted()` or `Parser::getMultiConverted()`). To set a command as the default command (the one that gets called when no command is provided) use the `.setAsDefault()` method. Every program must have a default command.
 
-To add a subcommand use the `.addSubCommand(const std::string& name, Command* newSubCommand)` method. newSubCommand must be the address of a stack allocated command.
+To add a subcommand use the `.addSubCommand(Command* newSubCommand, Names... names)` method. newSubCommand must be the address of a stack allocated command and names have to be strings (ar a type thet can initialize a string).
 
 To add an option group use the `.addOptionGroup(OptionGroup* newOptionGroup)` Only add an option group, that is already set up with all of it's options. Do not use a dynamically allocated pointer.
 
