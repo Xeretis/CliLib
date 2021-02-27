@@ -13,7 +13,9 @@ This project was heavily inspired by a repository called [MiniCommander](https:/
  - [x] Dynamic help command that uses the description and name of options and option groups to generate a help message
  - [x] Only C++11 required
 # TODO
- - [ ] Make examples
+ - [ ] Make more examples
+ - [ ] Add positional options
+ - [ ] Add an option to set a help message as default command
  - [ ] Add option validators
  - [ ] Maybe add windows type flag support (?)
  - [ ] Maybe improve option detection (?)
