@@ -44,7 +44,8 @@ public:
     explicit Command(std::string description, Func function, Args&... args);
 
     void setAsDefault();
-    void addSubCommand(const std::string& name, Command* newSubCommand);
+    template<typename... Names>
+    void addSubCommand(Command* newSubCommand, Names... names);
     void addOptionGroup(OptionGroup* group);
     void setNoReaminder(bool newNoRemainder);
 
@@ -54,7 +55,7 @@ public:
     const std::string &getDescription() const;
 
 private:
-    std::map<std::string, Command*> subCommands;
+    std::map<std::vector<std::string>, Command*> subCommands;
     std::vector<OptionGroup*> optionGroups;
     std::function<void()> callback;
     std::string description;
@@ -123,8 +124,9 @@ void Command::setAsDefault() {
     Parser::defaultCommand = this;
 }
 
-void Command::addSubCommand(const std::string& name, Command* newSubCommand) {
-    subCommands.emplace(name, newSubCommand);
+template<typename... Names>
+void Command::addSubCommand(Command* newSubCommand, Names... names) {
+    subCommands.emplace(std::vector<std::string>{names...}, newSubCommand);
 }
 
 void Command::addOptionGroup(OptionGroup* group) {
@@ -138,10 +140,12 @@ void Command::setNoReaminder(bool newNoRemainder) {
 void Command::run(std::vector<std::string> &rawArgs) const {
     if (!rawArgs.empty()) {
         for (const auto& command : subCommands) {
-            if (rawArgs[0] == command.first) {
-                rawArgs.erase(rawArgs.begin());
-                command.second->run(rawArgs);
-                return;
+            for (const auto& name : command.first) {
+                if (rawArgs[0] == name) {
+                    rawArgs.erase(rawArgs.begin());
+                    command.second->run(rawArgs);
+                    return;
+                }
             }
         }
         if (!Parser::hasOptionSyntax(rawArgs[0])) {
@@ -206,7 +210,11 @@ void Command::printHelp(const std::string &title) const {
     if (!subCommands.empty()) {
         std::cout << "Subcommands: (Use --help on the subcommand for more information)\n";
         for (const auto& command : subCommands) {
-            std::cout << "\t" << command.first << " - " << command.second->getDescription() << "\n";
+            std::cout << "\t";
+            for (const auto& name : command.first) {
+                std::cout << name << (name != *--command.first.end() ? ", " : "");
+            }
+            std::cout << " - " << command.second->getDescription() << "\n";
         }
         std::cout << "\n";
     }
