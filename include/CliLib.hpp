@@ -24,7 +24,6 @@ struct Option {
 class OptionGroup {
 public:
     OptionGroup(Policy p, std::string description);
-
     template<typename...Opts>
     OptionGroup(Policy p, std::string description, Opts... opts);
 
@@ -217,7 +216,7 @@ void Command::printHelp(const std::string &title) const {
 
         for (const auto& group : optionGroups) {
             std::cout << "\n[" + group->groupDescription + "]\n";
-            for (auto& option : group->options)
+            for (const auto& option : group->options)
                 std::cout << "\t" << option->opt << (option->longOption.empty() ? "" : ", " + option->longOption) << " - " << option->desc << std::endl;
         }
     }
