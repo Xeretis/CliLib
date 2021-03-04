@@ -15,7 +15,6 @@ This project was heavily inspired by a repository called [MiniCommander](https:/
 # TODO
  - [ ] Make more examples
  - [ ] Add positional options
- - [ ] Add an option to set a help message as default command
  - [ ] Add option validators
  - [ ] Maybe add windows type flag support (?)
  - [ ] Maybe improve option detection (?)

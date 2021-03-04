@@ -1,10 +1,6 @@
 #include <CliLib.hpp>
 #include <iostream>
 
-void defaultCommandFunc() {
-    std::cout << "Please provide a command (Use --help for more information)\n";
-}
-
 void commitFunc(const std::string& messsage) {
     std::cout << "Commited " << "with message: " << messsage << "\n";
 }
@@ -34,7 +30,7 @@ void removeCommitFunc(int number) {
 int main(int argc, char** argv) {
     Parser::parse(argc, argv);
 
-    Command defaultCommand("The default command", defaultCommandFunc);
+    Command defaultCommand("The default command", [&](){defaultCommand.printHelp("Usage");});
     defaultCommand.setAsDefault();
 
     //args
