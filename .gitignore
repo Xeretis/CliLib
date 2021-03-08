@@ -1,0 +1,5 @@
+.idea
+.vs
+out/
+/CMakeLists.txt
+/main.cpp
