@@ -36,7 +36,7 @@ int main(int argc, char** argv) {
     //args
     std::string message = Parser::getConverted<std::string>("-m", "--message");
     //command
-    Command commit "Allows you to commit the staged changes", commitFunc, message);
+    Command commit ("Allows you to commit the staged changes", commitFunc, message);
     //options
     OptionGroup commitReq(Policy::REQUIRED, "Required options", new Option("-m", "The commit message itself", "--message"));
     commit.addOptionGroup(&commitReq);
