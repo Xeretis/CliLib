@@ -94,9 +94,8 @@ OptionGroup::OptionGroup(Policy p, std::string description) : policy(p), groupDe
 
 template<typename... Opts>
 OptionGroup::OptionGroup(Policy p, std::string description, Opts... opts) : policy(p), groupDescription(std::move(description)) {
-    for (const auto& opt : {opts...}) {
+    for (const auto& opt : {opts...})
         options.template emplace_back(opt);
-    }
 }
 
 void OptionGroup::addOption(const std::string &opt, const std::string &desc, const std::string &longOption) {
@@ -105,15 +104,13 @@ void OptionGroup::addOption(const std::string &opt, const std::string &desc, con
 
 template<typename... Opts>
 void OptionGroup::addOption(Opts... opts) {
-    for (const auto& opt : {opts...}) {
+    for (const auto& opt : {opts...})
         options.emplace_back(opt);
-    }
 }
 
 OptionGroup::~OptionGroup() {
-    for (Option* option : options) {
+    for (Option* option : options)
         delete option;
-    }
 }
 
 //Command
@@ -139,15 +136,13 @@ void Command::setNoReaminder(bool newNoRemainder) {
 
 void Command::run(std::vector<std::string> &rawArgs) const {
     if (!rawArgs.empty()) {
-        for (const auto& command : subCommands) {
-            for (const auto& name : command.first) {
+        for (const auto& command : subCommands)
+            for (const auto& name : command.first)
                 if (rawArgs[0] == name) {
                     rawArgs.erase(rawArgs.begin());
                     command.second->run(rawArgs);
                     return;
                 }
-            }
-        }
         if (!Parser::hasOptionSyntax(rawArgs[0])) {
             std::cerr << "\"" << rawArgs[0] << "\" is not a valid command\n";
             exit(0);
@@ -211,9 +206,8 @@ void Command::printHelp(const std::string &title) const {
         std::cout << "Subcommands: (Use --help on the subcommand for more information)\n";
         for (const auto& command : subCommands) {
             std::cout << "\t";
-            for (const auto& name : command.first) {
+            for (const auto& name : command.first)
                 std::cout << name << (name != *--command.first.end() ? ", " : "");
-            }
             std::cout << " - " << command.second->getDescription() << "\n";
         }
         std::cout << "\n";
@@ -246,10 +240,10 @@ bool Command::isOption(const std::string &str) const {
 void Parser::parse(const int& argc, const char* const* argv, bool splitFlags) {
     for (int i = 1; i < argc; ++i) {
         std::string current = argv[i];
-        if (splitFlags && std::regex_match(current, std::regex("^(-[a-zA-Z]{2,})(=.*$|$)"))) {
+        if (splitFlags && std::regex_match(current, std::regex("^(-[a-zA-Z]{2,})(=.*$|$)")))
             for (int j = 1; j < current.size() && current[j - 1] != '='; ++j)
                 tokens.emplace_back((current[j] != '=') ? std::string{'-', current[j]} : current.substr(j + 1));
-        } else {
+        else {
             size_t equal_pos = current.find_first_of('=');
             if (equal_pos == std::string::npos)
                 tokens.emplace_back(current);
@@ -280,12 +274,10 @@ std::vector<std::string> Parser::getMultiRaw(const std::string &option, const st
     std::vector<std::string> params;
     auto itr = std::find(tokens.begin(), tokens.end(), option);
     auto itrLong = std::find(Parser::tokens.begin(), tokens.end(), longOption);
-    while (itr != tokens.end() && ++itr != tokens.end() && !hasOptionSyntax(*itr)) {
+    while (itr != tokens.end() && ++itr != tokens.end() && !hasOptionSyntax(*itr))
         params.push_back(*itr);
-    }
-    while (itrLong != tokens.end() && ++itrLong != tokens.end() && !hasOptionSyntax(*itrLong)) {
+    while (itrLong != tokens.end() && ++itrLong != tokens.end() && !hasOptionSyntax(*itrLong))
         params.push_back(*itrLong);
-    }
     return params;
 }
 

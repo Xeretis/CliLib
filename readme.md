@@ -15,7 +15,7 @@ This project was heavily inspired by a repository called [MiniCommander](https:/
 # TODO
  - [ ] Make more examples
  - [ ] Add positional options
- - [ ] Add option validators
+ - [ ] Add option validators (Ex.: Option can only be set type or it can only be an odd number...)
  - [ ] Maybe add windows type flag support (?)
  - [ ] Maybe improve option detection (?)
 # Usage
