@@ -47,6 +47,8 @@ public:
     template<typename... Names>
     void addSubCommand(Command* newSubCommand, Names... names);
     void addOptionGroup(OptionGroup* group);
+    template<typename... Groups>
+    void addOptionGroup(Groups... groups);
     void setNoReaminder(bool newNoRemainder);
 
     void run(std::vector<std::string>& rawArgs) const;
@@ -130,6 +132,12 @@ void Command::addOptionGroup(OptionGroup* group) {
     optionGroups.push_back(group);
 }
 
+template<typename... Groups>
+void Command::addOptionGroup(Groups... groups) {
+    for (const auto& group : {groups...})
+        optionGroups.push_back(group);
+}
+
 void Command::setNoReaminder(bool newNoRemainder) {
     noRemainder = newNoRemainder;
 }
@@ -178,9 +186,10 @@ bool Command::validateOptions() const {
                 break;
             else if (group->policy == Policy::ONEOF && valid && !wasOne)
                 wasOne = true;
-            else if (group->policy == Policy::ONEOF && valid && wasOne)
+            else if (group->policy == Policy::ONEOF && valid && wasOne) {
                 valid = false;
-            else if ((group->policy == Policy::OPTIONAL) || (group->policy == Policy::ONEOF && !valid && wasOne))
+                break;
+            } else if ((group->policy == Policy::OPTIONAL) || (group->policy == Policy::ONEOF && !valid && wasOne))
                 valid = true;
         }
         if (!valid)

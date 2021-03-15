@@ -13,7 +13,6 @@ This project was heavily inspired by a repository called [MiniCommander](https:/
  - [x] Dynamic help command that uses the description and name of options and option groups to generate a help message
  - [x] Only C++11 required
 # TODO
- - [ ] Make more examples
  - [ ] Add positional options
  - [ ] Add option validators (Ex.: Option can only be set type or it can only be an odd number...)
  - [ ] Maybe add windows type flag support (?)
@@ -46,7 +45,7 @@ To make a command make an instance of type `Command`. Each command requires a de
 
 To add a subcommand use the `.addSubCommand(Command* newSubCommand, Names... names)` method. newSubCommand must be the address of a stack allocated command and names have to be strings (ar a type thet can initialize a string).
 
-To add an option group use the `.addOptionGroup(OptionGroup* newOptionGroup)` Only add an option group, that is already set up with all of it's options. Do not use a dynamically allocated pointer.
+To add an option group use the `.addOptionGroup(OptionGroup* newOptionGroup)` or `.addOptionGroup(Groups... groups)` Only add an option group, that is already set up with all of it's options. Do not use a dynamically allocated pointer.
 
 Each command uses a "noRemainder" policy by default, meaning that unrecognized arguments will throw an error. To turn this off use the `.setNoRemainder(bool newNoRemainder)` method with `false` as an argument. This change will not apply to subcommands. 
 
