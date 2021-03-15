@@ -43,7 +43,6 @@ public:
     template<typename Func, typename... Args>
     explicit Command(std::string description, Func function, Args&... args);
 
-    void setAsDefault();
     template<typename... Names>
     void addSubCommand(Command* newSubCommand, Names... names);
     void addOptionGroup(OptionGroup* group);
@@ -75,6 +74,8 @@ public:
     static T getConverted(const std::string& option, const std::string& longOption = "", T defaultValue = T());
     template<typename T>
     static std::vector<T> getMultiConverted(const std::string& option, const std::string& longOption = "", std::initializer_list<T> defaultInit = {});
+
+    static void setAsDefault(Command* newDefaultCommand);
 
     static bool isSet(const std::string &option);
     static bool hasOptionSyntax(const std::string& str);
@@ -118,10 +119,6 @@ OptionGroup::~OptionGroup() {
 //Command
 template<typename Func, typename... Args>
 Command::Command(std::string description, Func function, Args&... args) : description(std::move(description)), callback([function, &args...](){function(args...);}) { }
-
-void Command::setAsDefault() {
-    Parser::defaultCommand = this;
-}
 
 template<typename... Names>
 void Command::addSubCommand(Command* newSubCommand, Names... names) {
@@ -400,6 +397,10 @@ std::vector<bool> Parser::getMultiConverted(const std::string &option, const std
     }
 
     return convertedParams;
+}
+
+void Parser::setAsDefault(Command* newDefaultCommand) {
+    defaultCommand = newDefaultCommand;
 }
 
 bool Parser::isSet(const std::string &option) {

@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
     OptionGroup argsGroup (Policy::REQUIRED, "Program args", new Option("-a", "The actual arguments given to the program", "--args"));
     cliCommand.addOptionGroup(&modeGroup, &argsGroup);
 
-    cliCommand.setAsDefault();
+    Parser::setAsDefault(&cliCommand);
 
     Parser::run();
 }

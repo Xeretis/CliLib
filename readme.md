@@ -41,7 +41,7 @@ Optional parameters:
 *Note: If noReaminder is false and we are trying to get the value from an option that deos not belong to the command but is set, it will still return it's value. I do not consider this a bug as all that has to be done for it to not happen is only using getConverted and getMultiConverted on options that belong to the command.*
 ## Making commands and option groups
 ### Commands
-To make a command make an instance of type `Command`. Each command requires a description, a corresponding function, and all arguments of the function (mainly variables previously assigned a value using either `Parser::getConverted()` or `Parser::getMultiConverted()`). To set a command as the default command (the one that gets called when no command is provided) use the `.setAsDefault()` method. Every program must have a default command.
+To make a command make an instance of type `Command`. Each command requires a description, a corresponding function, and all arguments of the function (mainly variables previously assigned a value using either `Parser::getConverted()` or `Parser::getMultiConverted()`). To set a command as the default command (the one that gets called when no command is provided) use the `Parser::setAsDefault(Command* newDefaultCommand)` method. Do not use a dynamically allocated pointer. Every program must have a default command.
 
 To add a subcommand use the `.addSubCommand(Command* newSubCommand, Names... names)` method. newSubCommand must be the address of a stack allocated command and names have to be strings (ar a type thet can initialize a string).
 
