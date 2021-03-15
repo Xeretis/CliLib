@@ -129,13 +129,13 @@ void Command::addSubCommand(Command* newSubCommand, Names... names) {
 }
 
 void Command::addOptionGroup(OptionGroup* group) {
-    optionGroups.push_back(group);
+    optionGroups.emplace_back(group);
 }
 
 template<typename... Groups>
 void Command::addOptionGroup(Groups... groups) {
     for (const auto& group : {groups...})
-        optionGroups.push_back(group);
+        optionGroups.emplace_back(group);
 }
 
 void Command::setNoReaminder(bool newNoRemainder) {
@@ -284,9 +284,9 @@ std::vector<std::string> Parser::getMultiRaw(const std::string &option, const st
     auto itr = std::find(tokens.begin(), tokens.end(), option);
     auto itrLong = std::find(Parser::tokens.begin(), tokens.end(), longOption);
     while (itr != tokens.end() && ++itr != tokens.end() && !hasOptionSyntax(*itr))
-        params.push_back(*itr);
+        params.emplace_back(*itr);
     while (itrLong != tokens.end() && ++itrLong != tokens.end() && !hasOptionSyntax(*itrLong))
-        params.push_back(*itrLong);
+        params.emplace_back(*itrLong);
     return params;
 }
 
@@ -360,7 +360,7 @@ std::vector<T> Parser::getMultiConverted(const std::string &option, const std::s
     for (const auto& param : params) {
         sBuffer << param << " ";
         sBuffer >> value;
-        convertedParams.push_back(value);
+        convertedParams.template emplace_back(value);
     }
 
     return convertedParams;
@@ -396,7 +396,7 @@ std::vector<bool> Parser::getMultiConverted(const std::string &option, const std
     for (const auto& param : params) {
         sBuffer << param << " ";
         sBuffer >> std::boolalpha >> value;
-        convertedParams.push_back(value);
+        convertedParams.emplace_back(value);
     }
 
     return convertedParams;
