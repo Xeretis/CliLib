@@ -197,7 +197,14 @@ void Command::run(std::vector<std::string> &rawArgs) {
                     command.second->run(rawArgs);
                     return;
                 }
-        if (!Parser::hasOptionSyntax(rawArgs[0])) {
+
+        bool hasFirstPositional = false;
+        for (const auto& group : optionGroups)
+            for (const auto& positionalOption : group->positionalOptions)
+                if (positionalOption->pos == 0)
+                    hasFirstPositional = true;
+
+        if (!Parser::hasOptionSyntax(rawArgs[0]) && !hasFirstPositional) {
             std::cerr << "\"" << rawArgs[0] << "\" is not a valid command\n";
             exit(0);
         }

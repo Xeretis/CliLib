@@ -17,6 +17,7 @@ This project was heavily inspired by a repository called [MiniCommander](https:/
  - [ ] Add option validators (Ex.: Option can only be set type or it can only be an odd number...)
  - [ ] Maybe add windows type flag support (?)
  - [ ] Maybe improve option detection (?)
+ - [ ] Custom help command
 # Usage
 Start your main function with parsing the program arguments. For this use the `Parser::parse(const int& argc, char const*const* argv, bool noRemainder = true, bool splitFlags = false)` method.
 
