@@ -35,8 +35,6 @@ struct PositionalOption {
 class OptionGroup {
 public:
     OptionGroup(std::string description, Policy p = Policy::REQUIRED, PositionalPolicy pp = PositionalPolicy::REQUIRED);
-    template<typename...Opts>
-    OptionGroup(std::string description, Policy p, PositionalPolicy pp, Opts... opts);
 
     //? flag options
     void addOption(FlagOption* single);
@@ -119,12 +117,6 @@ PositionalOption::PositionalOption(const unsigned int& pos, std::string desc) : 
 
 //OptionGroup
 OptionGroup::OptionGroup(std::string description, Policy p, PositionalPolicy pp) : groupDescription(std::move(description)), policy(p), positionalPolicy(pp) {}
-
-template<typename... Opts>
-OptionGroup::OptionGroup(std::string description, Policy p, PositionalPolicy pp, Opts... opts) : groupDescription(std::move(description)), policy(p), positionalPolicy(pp) {
-    for (const auto& opt : {opts...})
-        flagOptions.emplace_back(opt);
-}
 
 void OptionGroup::addOption(FlagOption* single) {
     flagOptions.emplace_back(single);
