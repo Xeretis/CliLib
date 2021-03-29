@@ -12,6 +12,11 @@ enum class Policy {
     ONEOF
 };
 
+enum class PositionalPolicy {
+    REQUIRED,
+    OPTIONAL
+};
+
 struct Option {
     Option(std::string opt, std::string desc, std::string longOption = "");
 
@@ -20,22 +25,39 @@ struct Option {
     std::string longOption;
 };
 
+struct PositionalOption {
+    PositionalOption(const unsigned int& pos, std::string desc);
+
+    unsigned int pos;
+    std::string desc;
+};
 
 class OptionGroup {
 public:
-    OptionGroup(Policy p, std::string description);
+    OptionGroup(std::string description, Policy p = Policy::REQUIRED, PositionalPolicy pp = PositionalPolicy::REQUIRED);
     template<typename...Opts>
-    OptionGroup(Policy p, std::string description, Opts... opts);
+    OptionGroup(std::string description, Policy p, PositionalPolicy pp, Opts... opts);
 
-    void addOption(const std::string& opt, const std::string& desc, const std::string& longOption="");
+    //? regular options
+    void addOption(const std::string &opt, const std::string &desc, const std::string &longOption);
+    void addOption(Option* single);
     template<typename... Opts>
-    void addOption(Opts... opts);
+    void addOption(Option* first, Opts... opts);
+
+    //? positional options
+    void addOption(const unsigned int& opt, const std::string &desc);
+    void addOption(PositionalOption* single);
+    template<typename... Opts>
+    void addOption(PositionalOption* first, Opts... opts);
+
 
     ~OptionGroup();
 
     Policy policy;
+    PositionalPolicy positionalPolicy;
     std::string groupDescription;
     std::vector<Option*> options;
+    std::vector<PositionalOption*> positionalOptions;
 };
 
 class Command {
@@ -50,7 +72,8 @@ public:
     void addOptionGroup(Groups... groups);
     void setNoReaminder(bool newNoRemainder);
 
-    void run(std::vector<std::string>& rawArgs) const;
+    void run(std::vector<std::string>& rawArgs, unsigned int newIndent = 0);
+
     bool validateOptions() const;
     void printHelp(const std::string& title = "") const;
     const std::string &getDescription() const;
@@ -60,6 +83,7 @@ private:
     std::vector<OptionGroup*> optionGroups;
     std::function<void()> callback;
     std::string description;
+    unsigned int indent;
     bool noRemainder = true;
 
     bool isOption(const std::string& str) const;
@@ -92,21 +116,45 @@ private:
 
 Option::Option(std::string opt, std::string desc, std::string longOption) : opt(std::move(opt)), desc(std::move(desc)), longOption(std::move(longOption)) { }
 
+//PositionalOption
+
+PositionalOption::PositionalOption(const unsigned int& pos, std::string desc) : pos(pos), desc(std::move(desc)) { }
+
 //OptionGroup
-OptionGroup::OptionGroup(Policy p, std::string description) : policy(p), groupDescription(std::move(description)) {}
+OptionGroup::OptionGroup(std::string description, Policy p, PositionalPolicy pp) : groupDescription(std::move(description)), policy(p), positionalPolicy(pp) {}
 
 template<typename... Opts>
-OptionGroup::OptionGroup(Policy p, std::string description, Opts... opts) : policy(p), groupDescription(std::move(description)) {
+OptionGroup::OptionGroup(std::string description, Policy p, PositionalPolicy pp, Opts... opts) : groupDescription(std::move(description)), policy(p), positionalPolicy(pp) {
     for (const auto& opt : {opts...})
-        options.template emplace_back(opt);
+        options.emplace_back(opt);
 }
 
 void OptionGroup::addOption(const std::string &opt, const std::string &desc, const std::string &longOption) {
     options.emplace_back(new Option(opt, desc, longOption));
 }
 
+void OptionGroup::addOption(Option* single) {
+    options.emplace_back(single);
+}
+
 template<typename... Opts>
-void OptionGroup::addOption(Opts... opts) {
+void OptionGroup::addOption(Option* first, Opts... opts) {
+    options.emplace_back(first);
+    for (const auto& opt : {opts...})
+        options.emplace_back(opt);
+}
+
+void OptionGroup::addOption(const unsigned int& opt, const std::string& desc) {
+    positionalOptions.emplace_back(new PositionalOption(opt, desc));
+}
+
+void OptionGroup::addOption(PositionalOption* single) {
+    positionalOptions.emplace_back(single);
+}
+
+template<typename... Opts>
+void OptionGroup::addOption(PositionalOption* first, Opts... opts) {
+    positionalOptions.emplace_back(first);
     for (const auto& opt : {opts...})
         options.emplace_back(opt);
 }
@@ -114,6 +162,8 @@ void OptionGroup::addOption(Opts... opts) {
 OptionGroup::~OptionGroup() {
     for (Option* option : options)
         delete option;
+    for (PositionalOption* positionalOption : positionalOptions)
+        delete positionalOption;
 }
 
 //Command
@@ -139,13 +189,15 @@ void Command::setNoReaminder(bool newNoRemainder) {
     noRemainder = newNoRemainder;
 }
 
-void Command::run(std::vector<std::string> &rawArgs) const {
+void Command::run(std::vector<std::string> &rawArgs, unsigned int newIndent) {
+    indent = newIndent;
     if (!rawArgs.empty()) {
         for (const auto& command : subCommands)
             for (const auto& name : command.first)
                 if (rawArgs[0] == name) {
+                    ++newIndent;
                     rawArgs.erase(rawArgs.begin());
-                    command.second->run(rawArgs);
+                    command.second->run(rawArgs, newIndent);
                     return;
                 }
         if (!Parser::hasOptionSyntax(rawArgs[0])) {
@@ -191,6 +243,16 @@ bool Command::validateOptions() const {
         }
         if (!valid)
             break;
+
+        for (const auto& positionalOption : group->positionalOptions) {
+            valid = (positionalOption->pos <= Parser::tokens.size() - this->indent);
+            if (group->positionalPolicy == PositionalPolicy::REQUIRED && !valid)
+                break;
+            else if (group->positionalPolicy == PositionalPolicy::OPTIONAL)
+                valid = true;
+        }
+        if (!valid)
+            break;
     }
 
     return valid;
@@ -226,6 +288,8 @@ void Command::printHelp(const std::string &title) const {
             std::cout << "\n[" + group->groupDescription + "]\n";
             for (const auto& option : group->options)
                 std::cout << "\t" << option->opt << (option->longOption.empty() ? "" : ", " + option->longOption) << " - " << option->desc << std::endl;
+            for (const auto& positinalOption : group->positionalOptions)
+                std::cout << "\tPosition: " << positinalOption->pos << " - " << positinalOption->desc << std::endl;
         }
     }
 }
@@ -357,7 +421,7 @@ std::vector<T> Parser::getMultiConverted(const std::string &option, const std::s
     for (const auto& param : params) {
         sBuffer << param << " ";
         sBuffer >> value;
-        convertedParams.template emplace_back(value);
+        convertedParams.emplace_back(value);
     }
 
     return convertedParams;
