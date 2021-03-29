@@ -17,8 +17,8 @@ enum class PositionalPolicy {
     OPTIONAL
 };
 
-struct Option {
-    Option(std::string opt, std::string desc, std::string longOption = "");
+struct FlagOption {
+    FlagOption(std::string opt, std::string desc, std::string longOption = "");
 
     std::string opt;
     std::string desc;
@@ -40,9 +40,9 @@ public:
 
     //? regular options
     void addOption(const std::string &opt, const std::string &desc, const std::string &longOption);
-    void addOption(Option* single);
+    void addOption(FlagOption* single);
     template<typename... Opts>
-    void addOption(Option* first, Opts... opts);
+    void addOption(FlagOption* first, Opts... opts);
 
     //? positional options
     void addOption(const unsigned int& opt, const std::string &desc);
@@ -56,7 +56,7 @@ public:
     Policy policy;
     PositionalPolicy positionalPolicy;
     std::string groupDescription;
-    std::vector<Option*> options;
+    std::vector<FlagOption*> options;
     std::vector<PositionalOption*> positionalOptions;
 };
 
@@ -72,7 +72,7 @@ public:
     void addOptionGroup(Groups... groups);
     void setNoReaminder(bool newNoRemainder);
 
-    void run(std::vector<std::string>& rawArgs, unsigned int newIndent = 0);
+    void run(std::vector<std::string>& rawArgs);
 
     bool validateOptions() const;
     void printHelp(const std::string& title = "") const;
@@ -83,7 +83,6 @@ private:
     std::vector<OptionGroup*> optionGroups;
     std::function<void()> callback;
     std::string description;
-    unsigned int indent;
     bool noRemainder = true;
 
     bool isOption(const std::string& str) const;
@@ -112,9 +111,9 @@ private:
     static std::vector<std::string> getMultiRaw(const std::string& option, const std::string& longOption = "");
 };
 
-//Option
+//FlagOption
 
-Option::Option(std::string opt, std::string desc, std::string longOption) : opt(std::move(opt)), desc(std::move(desc)), longOption(std::move(longOption)) { }
+FlagOption::FlagOption(std::string opt, std::string desc, std::string longOption) : opt(std::move(opt)), desc(std::move(desc)), longOption(std::move(longOption)) { }
 
 //PositionalOption
 
@@ -130,15 +129,15 @@ OptionGroup::OptionGroup(std::string description, Policy p, PositionalPolicy pp,
 }
 
 void OptionGroup::addOption(const std::string &opt, const std::string &desc, const std::string &longOption) {
-    options.emplace_back(new Option(opt, desc, longOption));
+    options.emplace_back(new FlagOption(opt, desc, longOption));
 }
 
-void OptionGroup::addOption(Option* single) {
+void OptionGroup::addOption(FlagOption* single) {
     options.emplace_back(single);
 }
 
 template<typename... Opts>
-void OptionGroup::addOption(Option* first, Opts... opts) {
+void OptionGroup::addOption(FlagOption* first, Opts... opts) {
     options.emplace_back(first);
     for (const auto& opt : {opts...})
         options.emplace_back(opt);
@@ -160,7 +159,7 @@ void OptionGroup::addOption(PositionalOption* first, Opts... opts) {
 }
 
 OptionGroup::~OptionGroup() {
-    for (Option* option : options)
+    for (FlagOption* option : options)
         delete option;
     for (PositionalOption* positionalOption : positionalOptions)
         delete positionalOption;
@@ -189,15 +188,13 @@ void Command::setNoReaminder(bool newNoRemainder) {
     noRemainder = newNoRemainder;
 }
 
-void Command::run(std::vector<std::string> &rawArgs, unsigned int newIndent) {
-    indent = newIndent;
+void Command::run(std::vector<std::string> &rawArgs) {
     if (!rawArgs.empty()) {
         for (const auto& command : subCommands)
             for (const auto& name : command.first)
                 if (rawArgs[0] == name) {
-                    ++newIndent;
                     rawArgs.erase(rawArgs.begin());
-                    command.second->run(rawArgs, newIndent);
+                    command.second->run(rawArgs);
                     return;
                 }
         if (!Parser::hasOptionSyntax(rawArgs[0])) {
@@ -245,7 +242,7 @@ bool Command::validateOptions() const {
             break;
 
         for (const auto& positionalOption : group->positionalOptions) {
-            valid = (positionalOption->pos <= Parser::tokens.size() - this->indent);
+            valid = (positionalOption->pos <= Parser::tokens.size());
             if (group->positionalPolicy == PositionalPolicy::REQUIRED && !valid)
                 break;
             else if (group->positionalPolicy == PositionalPolicy::OPTIONAL)
