@@ -39,13 +39,11 @@ public:
     OptionGroup(std::string description, Policy p, PositionalPolicy pp, Opts... opts);
 
     //? regular options
-    void addOption(const std::string &opt, const std::string &desc, const std::string &longOption);
     void addOption(FlagOption* single);
     template<typename... Opts>
     void addOption(FlagOption* first, Opts... opts);
 
     //? positional options
-    void addOption(const unsigned int& opt, const std::string &desc);
     void addOption(PositionalOption* single);
     template<typename... Opts>
     void addOption(PositionalOption* first, Opts... opts);
@@ -128,10 +126,6 @@ OptionGroup::OptionGroup(std::string description, Policy p, PositionalPolicy pp,
         options.emplace_back(opt);
 }
 
-void OptionGroup::addOption(const std::string &opt, const std::string &desc, const std::string &longOption) {
-    options.emplace_back(new FlagOption(opt, desc, longOption));
-}
-
 void OptionGroup::addOption(FlagOption* single) {
     options.emplace_back(single);
 }
@@ -141,10 +135,6 @@ void OptionGroup::addOption(FlagOption* first, Opts... opts) {
     options.emplace_back(first);
     for (const auto& opt : {opts...})
         options.emplace_back(opt);
-}
-
-void OptionGroup::addOption(const unsigned int& opt, const std::string& desc) {
-    positionalOptions.emplace_back(new PositionalOption(opt, desc));
 }
 
 void OptionGroup::addOption(PositionalOption* single) {
