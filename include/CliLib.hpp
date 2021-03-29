@@ -51,9 +51,9 @@ public:
 
     Policy policy;
     PositionalPolicy positionalPolicy;
-    std::string groupDescription;
     std::vector<FlagOption*> flagOptions;
     std::vector<PositionalOption*> positionalOptions;
+    std::string groupDescription;
 };
 
 class Command {
