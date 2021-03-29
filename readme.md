@@ -1,4 +1,6 @@
 # CliLib
+**Latest commit contains some unfinished stuff. Revert to the commit before positional options to be able to use the library.**
+
 A library aiming to be an easy to use and simple argument parser for CLI applications.
 
 This project was heavily inspired by a repository called [MiniCommander](https://github.com/MichaelGrupp/MiniCommander) and it uses the same parsing algorithm (for now at least). Looking back it might have been appropriate to fork that repository but anyways, check it out if you are interested in it.

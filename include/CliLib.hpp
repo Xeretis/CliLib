@@ -38,7 +38,7 @@ public:
     template<typename...Opts>
     OptionGroup(std::string description, Policy p, PositionalPolicy pp, Opts... opts);
 
-    //? regular options
+    //? flag options
     void addOption(FlagOption* single);
     template<typename... Opts>
     void addOption(FlagOption* first, Opts... opts);
@@ -54,7 +54,7 @@ public:
     Policy policy;
     PositionalPolicy positionalPolicy;
     std::string groupDescription;
-    std::vector<FlagOption*> options;
+    std::vector<FlagOption*> flagOptions;
     std::vector<PositionalOption*> positionalOptions;
 };
 
@@ -123,18 +123,18 @@ OptionGroup::OptionGroup(std::string description, Policy p, PositionalPolicy pp)
 template<typename... Opts>
 OptionGroup::OptionGroup(std::string description, Policy p, PositionalPolicy pp, Opts... opts) : groupDescription(std::move(description)), policy(p), positionalPolicy(pp) {
     for (const auto& opt : {opts...})
-        options.emplace_back(opt);
+        flagOptions.emplace_back(opt);
 }
 
 void OptionGroup::addOption(FlagOption* single) {
-    options.emplace_back(single);
+    flagOptions.emplace_back(single);
 }
 
 template<typename... Opts>
 void OptionGroup::addOption(FlagOption* first, Opts... opts) {
-    options.emplace_back(first);
+    flagOptions.emplace_back(first);
     for (const auto& opt : {opts...})
-        options.emplace_back(opt);
+        flagOptions.emplace_back(opt);
 }
 
 void OptionGroup::addOption(PositionalOption* single) {
@@ -145,11 +145,11 @@ template<typename... Opts>
 void OptionGroup::addOption(PositionalOption* first, Opts... opts) {
     positionalOptions.emplace_back(first);
     for (const auto& opt : {opts...})
-        options.emplace_back(opt);
+        flagOptions.emplace_back(opt);
 }
 
 OptionGroup::~OptionGroup() {
-    for (FlagOption* option : options)
+    for (FlagOption* option : flagOptions)
         delete option;
     for (PositionalOption* positionalOption : positionalOptions)
         delete positionalOption;
@@ -223,7 +223,7 @@ bool Command::validateOptions() const {
 
     for (const auto& group : optionGroups) {
         bool wasOne = false;
-        for (const auto& option : group->options) {
+        for (const auto& option : group->flagOptions) {
             valid = Parser::isSet(option->opt) || Parser::isSet(option->longOption);
             if ((group->policy == Policy::REQUIRED && !valid) || (group->policy == Policy::ANYOF && valid))
                 break;
@@ -280,7 +280,7 @@ void Command::printHelp(const std::string &title) const {
 
         for (const auto& group : optionGroups) {
             std::cout << "\n[" + group->groupDescription + "]\n";
-            for (const auto& option : group->options)
+            for (const auto& option : group->flagOptions)
                 std::cout << "\t" << option->opt << (option->longOption.empty() ? "" : ", " + option->longOption) << " - " << option->desc << std::endl;
             for (const auto& positinalOption : group->positionalOptions)
                 std::cout << "\tPosition: " << positinalOption->pos << " - " << positinalOption->desc << std::endl;
@@ -294,7 +294,7 @@ const std::string &Command::getDescription() const {
 
 bool Command::isOption(const std::string &str) const {
     for (const auto& group : optionGroups) {
-        for (const auto& option : group->options)
+        for (const auto& option : group->flagOptions)
             if (str == option->opt || str == option->longOption) return true;
     }
     return false;
