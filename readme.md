@@ -20,6 +20,7 @@ This project was heavily inspired by a repository called [MiniCommander](https:/
  - [ ] Maybe add windows type flag support (?)
  - [ ] Maybe improve option detection (?)
  - [ ] Custom help command + add policy to help
+ - [ ] Add the option variable to the option itself instead of having to get it's value separately.
 # Usage
 Start your main function with parsing the program arguments. For this use the `Parser::parse(const int& argc, char const*const* argv, bool noRemainder = true, bool splitFlags = false)` method.
 
