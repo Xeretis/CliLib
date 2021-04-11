@@ -74,8 +74,7 @@ int main(int argc, char** argv) {
     OptionGroup removeReq("Required options");
     removeReq.addOption(new FlagOption("-f", "The file to remove", "--file"));
 
-    remove.addOptionGroup(&removeOpt);
-    remove.addOptionGroup(&removeReq);
+    remove.addOptionGroup(&removeOpt, &removeReq);
 
     //args
     int number = Parser::getConverted<int>(0, 2);
