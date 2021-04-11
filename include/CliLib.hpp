@@ -7,8 +7,8 @@
 
 enum class FlagPolicy {
     REQUIRED,
-    ANYOF,
     OPTIONAL,
+    ANYOF,
     ONEOF
 };
 
@@ -280,8 +280,10 @@ void Command::printHelp(const std::string &title) const {
     if (!optionGroups.empty()) {
         std::cout << "Options:";
 
+        std::string policyNames[] = {"REQUIRED", "OPTIONAL", "ANYOF", "ONEOF"};
+
         for (const auto& group : optionGroups) {
-            std::cout << "\n[" + group->groupDescription + "]\n";
+            std::cout << "\n[" << group->groupDescription << "] | (Flag Policy: " << policyNames[static_cast<int>(group->flagPolicy)] << ") (Positional Policy: " << policyNames[static_cast<int>(group->positionalPolicy)] << ")\n";
             for (const auto& option : group->flagOptions)
                 std::cout << "\t" << option->opt << (option->longOption.empty() ? "" : ", " + option->longOption) << " - " << option->desc << std::endl;
             for (const auto& positinalOption : group->positionalOptions)
