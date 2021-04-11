@@ -352,7 +352,7 @@ std::vector<std::string> Parser::getMultiFlagRaw(const std::string &option, cons
 }
 
 std::string Parser::getPositionalRaw(const unsigned int& pos, const unsigned int& indent) {
-    if (tokens.size() - 1 < (indent + pos))
+    if (tokens.size() - 1 < (indent + pos) || tokens.empty())
         return "";
 
     return tokens[indent + pos];
