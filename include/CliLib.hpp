@@ -34,7 +34,7 @@ struct PositionalOption {
 
 class OptionGroup {
 public:
-    OptionGroup(std::string description, Policy p = Policy::REQUIRED, PositionalPolicy pp = PositionalPolicy::REQUIRED);
+    explicit OptionGroup(std::string description, Policy p = Policy::REQUIRED, PositionalPolicy pp = PositionalPolicy::REQUIRED);
 
     //? flag options
     void addOption(FlagOption* single);
@@ -89,10 +89,15 @@ public:
     static void parse (const int& argc, char const*const* argv, bool splitFlags = false);
     static void run();
 
+    //FlagOption
     template<typename T>
-    static T getConverted(const std::string& option, const std::string& longOption = "", T defaultValue = T());
+    static T getConverted(const std::string& option, const std::string& longOption = "", const T& defaultValue = T());
     template<typename T>
     static std::vector<T> getMultiConverted(const std::string& option, const std::string& longOption = "", std::initializer_list<T> defaultInit = {});
+
+    //PositionalOption
+    template<typename T>
+    static T getConverted(const unsigned int& pos, const T& defaultValue = T());
 
     static void setAsDefault(Command* newDefaultCommand);
 
@@ -321,6 +326,7 @@ void Parser::run() {
 std::string Parser::getFlagRaw(const std::string &option, const std::string &longOption) {
     auto itr = std::find(tokens.begin(), tokens.end(), option);
     auto itrLong = std::find(tokens.begin(), tokens.end(), longOption);
+
     if (itr != tokens.end() && ++itr != tokens.end() && !hasOptionSyntax(*itr))
         return *itr;
     else if (itrLong != tokens.end() && ++itrLong != tokens.end() && !hasOptionSyntax(*itrLong))
@@ -331,17 +337,21 @@ std::string Parser::getFlagRaw(const std::string &option, const std::string &lon
 
 std::vector<std::string> Parser::getMultiFlagRaw(const std::string &option, const std::string &longOption) {
     std::vector<std::string> values;
+
     auto itr = std::find(tokens.begin(), tokens.end(), option);
     auto itrLong = std::find(Parser::tokens.begin(), tokens.end(), longOption);
+
     while (itr != tokens.end() && ++itr != tokens.end() && !hasOptionSyntax(*itr))
         values.emplace_back(*itr);
     while (itrLong != tokens.end() && ++itrLong != tokens.end() && !hasOptionSyntax(*itrLong))
         values.emplace_back(*itrLong);
+
     return values;
 }
 
 std::string Parser::getPositionalRaw(const unsigned int& pos) {
-    if (tokens.size() - 1 < pos) return "";
+    if (tokens.size() - 1 < pos)
+        return "";
 
     return tokens[pos];
 }
@@ -356,8 +366,9 @@ std::vector<std::string> Parser::getMultiPositionalRaw(const unsigned int& pos) 
     return values;
 }
 
+//FlagOption "getters"
 template<typename T>
-T Parser::getConverted(const std::string &option, const std::string &longOption, T defaultValue) {
+T Parser::getConverted(const std::string &option, const std::string &longOption, const T& defaultValue) {
     std::string rawValue = getFlagRaw(option, longOption);
 
     if (rawValue.empty() && !(isSet(option) || isSet(longOption)))
@@ -368,16 +379,16 @@ T Parser::getConverted(const std::string &option, const std::string &longOption,
     }
 
     std::stringstream sBuffer;
-    sBuffer << rawValue;
-
     T convertedValue;
+
+    sBuffer << rawValue;
     sBuffer >> convertedValue;
 
     return convertedValue;
 }
 
 template<>
-std::string Parser::getConverted(const std::string &option, const std::string& longOption, std::string defaultValue) {
+std::string Parser::getConverted(const std::string &option, const std::string& longOption, const std::string& defaultValue) {
     std::string rawValue = getFlagRaw(option, longOption);
 
     if (rawValue.empty() && !(isSet(option) || isSet(longOption)))
@@ -391,7 +402,7 @@ std::string Parser::getConverted(const std::string &option, const std::string& l
 }
 
 template<>
-bool Parser::getConverted(const std::string &option, const std::string& longOption, bool defaultValue) {
+bool Parser::getConverted(const std::string &option, const std::string& longOption, const bool& defaultValue) {
     std::string rawValue = getFlagRaw(option, longOption);
 
     if (rawValue.empty() && !(isSet(option) || isSet(longOption)))
@@ -400,9 +411,9 @@ bool Parser::getConverted(const std::string &option, const std::string& longOpti
         return true;
 
     std::stringstream sBuffer;
-    sBuffer << rawValue;
-
     bool convertedValue;
+
+    sBuffer << rawValue;
     sBuffer >> std::boolalpha >> convertedValue;
 
     return convertedValue;
@@ -411,8 +422,6 @@ bool Parser::getConverted(const std::string &option, const std::string& longOpti
 template<typename T>
 std::vector<T> Parser::getMultiConverted(const std::string &option, const std::string &longOption, std::initializer_list<T> defaultInit) {
     std::vector<std::string> params = getMultiFlagRaw(option, longOption);
-    std::vector<T> convertedParams;
-
     if (params.empty() && !(isSet(option) || isSet(longOption)))
         return defaultInit;
     else if (params.empty()) {
@@ -421,6 +430,8 @@ std::vector<T> Parser::getMultiConverted(const std::string &option, const std::s
     }
 
     std::stringstream sBuffer;
+    std::vector<T> convertedParams;
+
 
     T value;
     for (const auto& param : params) {
@@ -434,22 +445,21 @@ std::vector<T> Parser::getMultiConverted(const std::string &option, const std::s
 
 template<>
 std::vector<std::string> Parser::getMultiConverted(const std::string &option, const std::string &longOption, std::initializer_list<std::string> defaultInit) {
-    std::vector<std::string> convertedParams = getMultiFlagRaw(option, longOption);
+    std::vector<std::string> rawParams = getMultiFlagRaw(option, longOption);
 
-    if (convertedParams.empty() && !(isSet(option) || isSet(longOption)))
+    if (rawParams.empty() && !(isSet(option) || isSet(longOption)))
         return defaultInit;
-    else if (convertedParams.empty()) {
+    else if (rawParams.empty()) {
         std::cerr << "No value provided for \"" << option << "/" << longOption << "\"\n";
         exit(0);
     }
 
-    return convertedParams;
+    return rawParams;
 }
 
 template<>
 std::vector<bool> Parser::getMultiConverted(const std::string &option, const std::string &longOption, std::initializer_list<bool> defaultInit) {
     std::vector<std::string> params = getMultiFlagRaw(option, longOption);
-    std::vector<bool> convertedParams;
 
     if (params.empty() && !(isSet(option) || isSet(longOption)))
         return defaultInit;
@@ -457,6 +467,7 @@ std::vector<bool> Parser::getMultiConverted(const std::string &option, const std
         return {true};
 
     std::stringstream sBuffer;
+    std::vector<bool> convertedParams;
 
     bool value;
     for (const auto& param : params) {
@@ -466,6 +477,49 @@ std::vector<bool> Parser::getMultiConverted(const std::string &option, const std
     }
 
     return convertedParams;
+}
+
+//PositionalOption "getters"
+template<typename T>
+T Parser::getConverted(const unsigned int& pos, const T& defaultValue) {
+    std::string rawValue = getPositionalRaw(pos);
+
+    if(rawValue.empty())
+        return defaultValue;
+
+    std::stringstream sBuffer;
+    T value;
+
+    sBuffer << rawValue;
+    sBuffer >> value;
+
+    return value;
+}
+
+template<>
+std::string Parser::getConverted(const unsigned int& pos, const std::string& defaultValue) {
+    std::string rawValue = getPositionalRaw(pos);
+
+    if (rawValue.empty())
+        return defaultValue;
+
+    return rawValue;
+}
+
+template<>
+bool Parser::getConverted(const unsigned int& pos, const bool& defaultValue) {
+    std::string rawValue = getPositionalRaw(pos);
+
+    if (rawValue.empty())
+        return defaultValue;
+
+    std::stringstream sBuffer;
+    bool value;
+
+    sBuffer << rawValue;
+    sBuffer >> std::boolalpha >> value;
+
+    return value;
 }
 
 void Parser::setAsDefault(Command* newDefaultCommand) {
