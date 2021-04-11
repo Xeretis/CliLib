@@ -6,20 +6,21 @@ A library aiming to be an easy to use and simple argument parser for CLI applica
 This project was heavily inspired by a repository called [MiniCommander](https://github.com/MichaelGrupp/MiniCommander) and it uses the same parsing algorithm (for now at least). Looking back it might have been appropriate to fork that repository but anyways, check it out if you are interested in it.
 # Features
  - [x] Default option and unlimited suboptions with descriptions
+ - [x] Both flag options and positional options
  - [x] Command aliases
- - [x] Option to ignore unrecognised commands or throw an error
- - [x] Single and multiple parameters of any type
+ - [x] Option to ignore unrecognised flags or throw an error
+ - [x] Single and multiple (variadic) parameters of any type
  - [x] Split short flags (unix flags) option
- - [x] Parameter groups with a name, a policy and a description
- - [x] Optional, required, anyof and oneof policy for parameter groups
- - [x] Dynamic help command that uses the description and name of options and option groups to generate a help message
+ - [x] Parameter groups with a name, a flag policy, a positional policy and a description
+ - [x] Required, optional, anyof and oneof flag policy and required or optional positional policy for option groups
+ - [x] Dynamic help command that uses the description and name of options and option groups (+ policies) to generate a help message
  - [x] Only C++11 required
 # TODO
- - [ ] Add positional options
  - [ ] Add option validators (Ex.: Option can only be set type or it can only be an odd number...)
  - [ ] Maybe add windows type flag support (?)
- - [ ] Maybe improve option detection (?)
- - [ ] Custom help command + add policy to help
+ - [ ] Maybe improve option parsing (?)
+ - [ ] Custom help command
+ - [ ] More informative error messages
 # Usage
 Start your main function with parsing the program arguments. For this use the `Parser::parse(const int& argc, char const*const* argv, bool noRemainder = true, bool splitFlags = false)` method.
 

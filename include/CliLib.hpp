@@ -68,7 +68,7 @@ public:
     void addOptionGroup(Groups... groups);
     void setNoReaminder(bool newNoRemainder);
 
-    void run(std::vector<std::string>& rawArgs);
+    void run();
 
     bool validateOptions() const;
     void printHelp(const std::string& title = "") const;
@@ -77,7 +77,7 @@ public:
 private:
     std::map<std::vector<std::string>, Command*> subCommands;
     std::vector<OptionGroup*> optionGroups;
-    std::function<void()> callback;
+    std::function<void()> commandFunction;
     std::string description;
     bool noRemainder = true;
 
@@ -87,7 +87,6 @@ private:
 class Parser {
 public:
     static void parse (const int& argc, char const*const* argv, bool splitFlags = false);
-    static void run();
 
     //FlagOption
     template<typename T>
@@ -101,13 +100,10 @@ public:
     template<typename T>
     static std::vector<T> getMultiConverted(const unsigned int& pos, const unsigned int& indent = 0, std::initializer_list<T> defaultInit = {});
 
-    static void setAsDefault(Command* newDefaultCommand);
-
     static bool isSet(const std::string &option);
     static bool hasOptionSyntax(const std::string& str);
 
     static std::vector<std::string> tokens;
-    static Command* defaultCommand;
 private:
 
     static std::string getFlagRaw (const std::string& option, const std::string& longOption = "");
@@ -160,7 +156,7 @@ OptionGroup::~OptionGroup() {
 
 //Command
 template<typename Func, typename... Args>
-Command::Command(std::string description, Func function, Args&... args) : description(std::move(description)), callback([function, &args...](){function(args...);}) { }
+Command::Command(std::string description, Func function, Args&... args) : description(std::move(description)), commandFunction([function, &args...](){function(args...);}) { }
 
 template<typename... Names>
 void Command::addSubCommand(Command* newSubCommand, Names... names) {
@@ -181,13 +177,13 @@ void Command::setNoReaminder(bool newNoRemainder) {
     noRemainder = newNoRemainder;
 }
 
-void Command::run(std::vector<std::string> &rawArgs) {
-    if (!rawArgs.empty()) {
+void Command::run() {
+    if (!Parser::tokens.empty()) {
         for (const auto& command : subCommands)
             for (const auto& name : command.first)
-                if (rawArgs[0] == name) {
-                    rawArgs.erase(rawArgs.begin());
-                    command.second->run(rawArgs);
+                if (Parser::tokens[0] == name) {
+                    Parser::tokens.erase(Parser::tokens.begin());
+                    command.second->run();
                     return;
                 }
 
@@ -197,8 +193,8 @@ void Command::run(std::vector<std::string> &rawArgs) {
                 if (positionalOption->pos == 0)
                     hasFirstPositional = true;
 
-        if (!Parser::hasOptionSyntax(rawArgs[0]) && !hasFirstPositional) {
-            std::cerr << "\"" << rawArgs[0] << "\" is not a valid command\n";
+        if (!Parser::hasOptionSyntax(Parser::tokens[0]) && !hasFirstPositional) {
+            std::cerr << "\"" << Parser::tokens[0] << "\" is not a valid command\n";
             exit(0);
         }
     }
@@ -213,7 +209,7 @@ void Command::run(std::vector<std::string> &rawArgs) {
         exit(0);
     }
 
-    callback();
+    commandFunction();
 }
 
 bool Command::validateOptions() const {
@@ -332,10 +328,6 @@ void Parser::parse(const int& argc, const char* const* argv, bool splitFlags) {
             }
         }
     }
-}
-
-void Parser::run() {
-    defaultCommand->run(tokens);
 }
 
 std::string Parser::getFlagRaw(const std::string &option, const std::string &longOption) {
@@ -581,10 +573,6 @@ std::vector<bool> Parser::getMultiConverted(const unsigned int& pos, const unsig
     return values;
 }
 
-void Parser::setAsDefault(Command* newDefaultCommand) {
-    defaultCommand = newDefaultCommand;
-}
-
 bool Parser::isSet(const std::string &option) {
     return std::find(tokens.begin(), tokens.end(), option) != tokens.end();
 }
@@ -594,6 +582,5 @@ bool Parser::hasOptionSyntax(const std::string& str) {
 }
 
 std::vector<std::string> Parser::tokens;
-Command* Parser::defaultCommand;
 
 #endif //CLIAPP_CLILIB_HPP

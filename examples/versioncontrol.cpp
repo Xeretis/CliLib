@@ -31,7 +31,6 @@ int main(int argc, char** argv) {
     Parser::parse(argc, argv);
 
     Command defaultCommand("The default command", [&](){defaultCommand.printHelp("Usage");});
-    Parser::setAsDefault(&defaultCommand);
 
     //args
     std::string message = Parser::getConverted<std::string>("-m", "--message");
@@ -96,5 +95,5 @@ int main(int argc, char** argv) {
 
     remove.addSubCommand(&removeCommit, "commit");
 
-    Parser::run();
+    defaultCommand.run();
 }

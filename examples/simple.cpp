@@ -30,7 +30,6 @@ int main(int argc, char** argv) {
     std::vector<std::string> args = Parser::getMultiConverted<std::string>(1);
 
     Command cliCommand ("A simple example with only a single command", cliFunc, mode, args);
-    Parser::setAsDefault(&cliCommand);
 
     OptionGroup modeGroup ("Program mode", FlagPolicy::ONEOF);
     modeGroup.addOption(new FlagOption("-f", "The first mode"), new FlagOption("-s", "The second mode"), new FlagOption("-t", "The third mode"));
@@ -40,5 +39,5 @@ int main(int argc, char** argv) {
 
     cliCommand.addOptionGroup(&modeGroup, &argsGroup);
 
-    Parser::run();
+    cliCommand.run();
 }
