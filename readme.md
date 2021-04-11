@@ -66,3 +66,5 @@ All is pretty self explanatory.
 *Note: Technically flag options can be anything that starts with '-' so option and longOption could be swithed up, or there could even be two options with '-', but they are originally meant to be used with a short and a long version. (Doing otherwise may cause problems in the future)*
 ## Examples
 Examples can be found in the `./examples` folder. Take a look at them to get a deeper understanding of how things are done in action.
+
+*Disclaimer: This projact was made and tested with the MinGW compiler. Some other compilers may work just as well, but by default the MSVC compiler will not work. To get it working with MSVC as well you need to add some  extra imports at the start of CliLib.hpp. (Your IDE will probably tell you which)*
