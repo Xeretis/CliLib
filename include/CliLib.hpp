@@ -98,6 +98,8 @@ public:
     //PositionalOption
     template<typename T>
     static T getConverted(const unsigned int& pos, const unsigned int& indent = 0, const T& defaultValue = T());
+    template<typename T>
+    static std::vector<T> getMultiConverted(const unsigned int& pos, const unsigned int& indent = 0, std::initializer_list<T> defaultInit = {});
 
     static void setAsDefault(Command* newDefaultCommand);
 
@@ -421,62 +423,64 @@ bool Parser::getConverted(const std::string &option, const std::string& longOpti
 
 template<typename T>
 std::vector<T> Parser::getMultiConverted(const std::string &option, const std::string &longOption, std::initializer_list<T> defaultInit) {
-    std::vector<std::string> params = getMultiFlagRaw(option, longOption);
-    if (params.empty() && !(isSet(option) || isSet(longOption)))
+    std::vector<std::string> rawValues = getMultiFlagRaw(option, longOption);
+    if (rawValues.empty() && !(isSet(option) || isSet(longOption)))
         return defaultInit;
-    else if (params.empty()) {
+    else if (rawValues.empty()) {
         std::cerr << "No value provided for \"" << option << "/" << longOption << "\"\n";
         exit(0);
     }
 
     std::stringstream sBuffer;
-    std::vector<T> convertedParams;
+    std::vector<T> values;
 
 
     T value;
-    for (const auto& param : params) {
-        sBuffer << param << " ";
+    for (const auto& rawValue : rawValues) {
+        sBuffer << rawValue;
         sBuffer >> value;
-        convertedParams.emplace_back(value);
+        values.emplace_back(value);
     }
 
-    return convertedParams;
+    return values;
 }
 
 template<>
 std::vector<std::string> Parser::getMultiConverted(const std::string &option, const std::string &longOption, std::initializer_list<std::string> defaultInit) {
-    std::vector<std::string> rawParams = getMultiFlagRaw(option, longOption);
+    std::vector<std::string> rawValues = getMultiFlagRaw(option, longOption);
 
-    if (rawParams.empty() && !(isSet(option) || isSet(longOption)))
+    if (rawValues.empty() && !(isSet(option) || isSet(longOption)))
         return defaultInit;
-    else if (rawParams.empty()) {
+    else if (rawValues.empty()) {
         std::cerr << "No value provided for \"" << option << "/" << longOption << "\"\n";
         exit(0);
     }
 
-    return rawParams;
+    return rawValues;
 }
 
 template<>
 std::vector<bool> Parser::getMultiConverted(const std::string &option, const std::string &longOption, std::initializer_list<bool> defaultInit) {
-    std::vector<std::string> params = getMultiFlagRaw(option, longOption);
+    std::vector<std::string> rawValues = getMultiFlagRaw(option, longOption);
 
-    if (params.empty() && !(isSet(option) || isSet(longOption)))
+    if (rawValues.empty() && !(isSet(option) || isSet(longOption)))
         return defaultInit;
-    else if (params.empty())
+    else if (rawValues.empty())
         return {true};
 
     std::stringstream sBuffer;
-    std::vector<bool> convertedParams;
+    std::vector<bool> values;
+
+    sBuffer.setf(std::ios_base::boolalpha);
 
     bool value;
-    for (const auto& param : params) {
-        sBuffer << param << " ";
-        sBuffer >> std::boolalpha >> value;
-        convertedParams.emplace_back(value);
+    for (const auto& rawValue : rawValues) {
+        sBuffer << rawValue;
+        sBuffer >> value;
+        values.emplace_back(value);
     }
 
-    return convertedParams;
+    return values;
 }
 
 //PositionalOption "getters"
@@ -520,6 +524,58 @@ bool Parser::getConverted(const unsigned int& pos, const unsigned int& indent, c
     sBuffer >> std::boolalpha >> value;
 
     return value;
+}
+
+template<typename T>
+std::vector<T> Parser::getMultiConverted(const unsigned int& pos, const unsigned int& indent, std::initializer_list<T> defaultInit) {
+    std::vector<std::string> rawValues = getMultiPositionalRaw(pos, indent);
+
+    if (rawValues.empty())
+        return defaultInit;
+
+    std::stringstream sBuffer;
+    std::vector<T> values;
+
+    T value;
+    for (const auto& rawValue : rawValues) {
+        sBuffer << rawValue;
+        sBuffer >> value;
+        values.emplace_back(value);
+    }
+
+    return values;
+}
+
+template<>
+std::vector<std::string> Parser::getMultiConverted(const unsigned int& pos, const unsigned int& indent, std::initializer_list<std::string> defaultInit) {
+    std::vector<std::string> rawValues = getMultiPositionalRaw(pos, indent);
+
+    if (rawValues.empty())
+        return defaultInit;
+
+    return rawValues;
+}
+
+template<>
+std::vector<bool> Parser::getMultiConverted(const unsigned int& pos, const unsigned int& indent, std::initializer_list<bool> defaultInit) {
+    std::vector<std::string> rawValues = getMultiPositionalRaw(pos, indent);
+
+    if (rawValues.empty())
+        return defaultInit;
+
+    std::stringstream sBuffer;
+    std::vector<bool> values;
+
+    sBuffer.setf(std::ios_base::boolalpha);
+
+    bool value;
+    for (const auto& rawValue : rawValues) {
+        sBuffer << rawValue;
+        sBuffer >> value;
+        values.emplace_back(value);
+    }
+
+    return values;
 }
 
 void Parser::setAsDefault(Command* newDefaultCommand) {
