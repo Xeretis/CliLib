@@ -67,6 +67,7 @@ public:
     template<typename... Groups>
     void addOptionGroup(Groups... groups);
     void setNoReaminder(bool newNoRemainder);
+    void setHelpCommand(const std::string& shortOption, const std::string& longOption = "");
 
     void run();
 
@@ -78,6 +79,7 @@ private:
     std::map<std::vector<std::string>, Command*> subCommands;
     std::vector<OptionGroup*> optionGroups;
     std::function<void()> commandFunction;
+    std::pair<std::string, std::string> helpCommand = {"-h", "--help"};
     std::string description;
     bool noRemainder = true;
 
@@ -177,6 +179,10 @@ void Command::setNoReaminder(bool newNoRemainder) {
     noRemainder = newNoRemainder;
 }
 
+void Command::setHelpCommand(const std::string& shortOption, const std::string& longOption) {
+    helpCommand = {shortOption, longOption};
+}
+
 void Command::run() {
     if (!Parser::tokens.empty()) {
         for (const auto& command : subCommands)
@@ -199,7 +205,7 @@ void Command::run() {
         }
     }
 
-    if (Parser::isSet("--help") || Parser::isSet("-h")) {
+    if (Parser::isSet(helpCommand.first) || Parser::isSet(helpCommand.second)) {
         printHelp("Command usage");
         exit(0);
     }

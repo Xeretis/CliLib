@@ -11,13 +11,12 @@ This project was heavily inspired by a repository called [MiniCommander](https:/
  - [x] Split short flags (unix flags) option
  - [x] Parameter groups with a name, a flag policy, a positional policy and a description
  - [x] Required, optional, anyof and oneof flag policy and required or optional positional policy for option groups
- - [x] Dynamic help command that uses the description and name of options and option groups (+ policies) to generate a help message
+ - [x] Dynamic help command that uses the description and name of options and option groups (+ policies) to generate a help message with custom flag
  - [x] Only C++11 required
 # TODO
  - [ ] Add option validators (Ex.: Option can only be set type or it can only be an odd number...)
  - [ ] Maybe add windows type flag support (?)
  - [ ] Maybe improve option parsing (?)
- - [ ] Custom help command
  - [ ] More informative error messages
 # Usage
 Start your main function with parsing the program arguments. For this use the `Parser::parse(const int& argc, char const*const* argv, bool splitFlags = false)` method.
@@ -46,7 +45,9 @@ To add a subcommand use the `.addSubCommand(Command* newSubCommand, Names... nam
 
 To add an option group use the `.addOptionGroup(OptionGroup* newOptionGroup)` or `.addOptionGroup(Groups... groups)` Do not use a dynamically allocated pointer.
 
-Each command uses a "noRemainder" policy by default, meaning that unrecognized options will throw an error. To turn this off use the `.setNoRemainder(bool newNoRemainder)` method with `false` as an argument. This change will not apply to subcommands. 
+Each command uses a "noRemainder" policy by default, meaning that unrecognized options will throw an error. To turn this off use the `.setNoRemainder(bool newNoRemainder)` method with `false` as an argument. This change will not apply to subcommands.
+
+One other thing that commands have is their help flag (`-h` and `--help`). This property can also be set. Use the `.setHelpCommand(const std::string& shortOption, const std::string& longOption = "")` method to do it.
 
 ### Option groups
 
