@@ -67,4 +67,4 @@ All is pretty self explanatory.
 ## Examples
 Examples can be found in the `./examples` folder. Take a look at them to get a deeper understanding of how things are done in action.
 
-*Disclaimer: This projact was made and tested with the MinGW compiler. Some other compilers may work just as well, but by default the MSVC compiler will not work. To get it working with MSVC as well you need to add some  extra imports at the start of CliLib.hpp. (Your IDE will probably tell you which)*
+*Disclaimer: This projact was made and tested with the MinGW compiler. Some other compilers may work just as well, but by default the MSVC compiler will not work. To get it working with MSVC as well you have to add some extra imports at the start of CliLib.hpp. (Your IDE will probably tell you which)*
