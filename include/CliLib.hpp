@@ -5,7 +5,7 @@
 #include <iostream>
 #include <utility>
 
-enum class Policy {
+enum class FlagPolicy {
     REQUIRED,
     ANYOF,
     OPTIONAL,
@@ -34,7 +34,7 @@ struct PositionalOption {
 
 class OptionGroup {
 public:
-    explicit OptionGroup(std::string description, Policy p = Policy::REQUIRED, PositionalPolicy pp = PositionalPolicy::REQUIRED);
+    explicit OptionGroup(std::string description, FlagPolicy fp = FlagPolicy::REQUIRED, PositionalPolicy pp = PositionalPolicy::REQUIRED);
 
     //? flag options
     void addOption(FlagOption* single);
@@ -49,7 +49,7 @@ public:
 
     ~OptionGroup();
 
-    Policy policy;
+    FlagPolicy flagPolicy;
     PositionalPolicy positionalPolicy;
     std::vector<FlagOption*> flagOptions;
     std::vector<PositionalOption*> positionalOptions;
@@ -126,7 +126,7 @@ FlagOption::FlagOption(std::string opt, std::string desc, std::string longOption
 PositionalOption::PositionalOption(const unsigned int& pos, std::string desc) : pos(pos), desc(std::move(desc)) { }
 
 //OptionGroup
-OptionGroup::OptionGroup(std::string description, Policy p, PositionalPolicy pp) : groupDescription(std::move(description)), policy(p), positionalPolicy(pp) {}
+OptionGroup::OptionGroup(std::string description, FlagPolicy fp, PositionalPolicy pp) : groupDescription(std::move(description)), flagPolicy(fp), positionalPolicy(pp) {}
 
 void OptionGroup::addOption(FlagOption* single) {
     flagOptions.emplace_back(single);
@@ -227,21 +227,21 @@ bool Command::validateOptions() const {
         bool wasOne = false;
         for (const auto& option : group->flagOptions) {
             valid = Parser::isSet(option->opt) || Parser::isSet(option->longOption);
-            if ((group->policy == Policy::REQUIRED && !valid) || (group->policy == Policy::ANYOF && valid))
+            if ((group->flagPolicy == FlagPolicy::REQUIRED && !valid) || (group->flagPolicy == FlagPolicy::ANYOF && valid))
                 break;
-            else if (group->policy == Policy::ONEOF && valid && !wasOne)
+            else if (group->flagPolicy == FlagPolicy::ONEOF && valid && !wasOne)
                 wasOne = true;
-            else if (group->policy == Policy::ONEOF && valid && wasOne) {
+            else if (group->flagPolicy == FlagPolicy::ONEOF && valid && wasOne) {
                 valid = false;
                 break;
-            } else if ((group->policy == Policy::OPTIONAL) || (group->policy == Policy::ONEOF && !valid && wasOne))
+            } else if ((group->flagPolicy == FlagPolicy::OPTIONAL) || (group->flagPolicy == FlagPolicy::ONEOF && !valid && wasOne))
                 valid = true;
         }
         if (!valid)
             break;
 
         for (const auto& positionalOption : group->positionalOptions) {
-            valid = (positionalOption->pos <= Parser::tokens.size());
+            valid = (positionalOption->pos < Parser::tokens.size());
             if (group->positionalPolicy == PositionalPolicy::REQUIRED && !valid)
                 break;
             else if (group->positionalPolicy == PositionalPolicy::OPTIONAL)
@@ -405,20 +405,10 @@ std::string Parser::getConverted(const std::string &option, const std::string& l
 
 template<>
 bool Parser::getConverted(const std::string &option, const std::string& longOption, const bool& defaultValue) {
-    std::string rawValue = getFlagRaw(option, longOption);
-
-    if (rawValue.empty() && !(isSet(option) || isSet(longOption)))
+    if (!(isSet(option) || isSet(longOption)))
         return defaultValue;
-    else if (rawValue.empty())
-        return true;
 
-    std::stringstream sBuffer;
-    bool convertedValue;
-
-    sBuffer << rawValue;
-    sBuffer >> std::boolalpha >> convertedValue;
-
-    return convertedValue;
+    return true;
 }
 
 template<typename T>
