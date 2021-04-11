@@ -97,7 +97,7 @@ public:
 
     //PositionalOption
     template<typename T>
-    static T getConverted(const unsigned int& pos, const T& defaultValue = T());
+    static T getConverted(const unsigned int& pos, const unsigned int& indent = 0, const T& defaultValue = T());
 
     static void setAsDefault(Command* newDefaultCommand);
 
@@ -111,8 +111,8 @@ private:
     static std::string getFlagRaw (const std::string& option, const std::string& longOption = "");
     static std::vector<std::string> getMultiFlagRaw(const std::string& option, const std::string& longOption = "");
 
-    static std::string getPositionalRaw (const unsigned int& pos);
-    static std::vector<std::string> getMultiPositionalRaw (const unsigned int& pos);
+    static std::string getPositionalRaw (const unsigned int& pos, const unsigned int& indent);
+    static std::vector<std::string> getMultiPositionalRaw (const unsigned int& pos, const unsigned int& indent);
 };
 
 //FlagOption
@@ -349,17 +349,17 @@ std::vector<std::string> Parser::getMultiFlagRaw(const std::string &option, cons
     return values;
 }
 
-std::string Parser::getPositionalRaw(const unsigned int& pos) {
-    if (tokens.size() - 1 < pos)
+std::string Parser::getPositionalRaw(const unsigned int& pos, const unsigned int& indent) {
+    if (tokens.size() - 1 < (indent + pos))
         return "";
 
-    return tokens[pos];
+    return tokens[indent + pos];
 }
 
-std::vector<std::string> Parser::getMultiPositionalRaw(const unsigned int& pos) {
+std::vector<std::string> Parser::getMultiPositionalRaw(const unsigned int& pos, const unsigned int& indent) {
     std::vector<std::string> values;
 
-    for (unsigned int i = pos; i < tokens.size(); ++i) {
+    for (unsigned int i = (indent + pos); i < tokens.size(); ++i) {
         values.emplace_back(tokens[i]);
     }
 
@@ -481,8 +481,8 @@ std::vector<bool> Parser::getMultiConverted(const std::string &option, const std
 
 //PositionalOption "getters"
 template<typename T>
-T Parser::getConverted(const unsigned int& pos, const T& defaultValue) {
-    std::string rawValue = getPositionalRaw(pos);
+T Parser::getConverted(const unsigned int& pos, const unsigned int& indent, const T& defaultValue) {
+    std::string rawValue = getPositionalRaw(pos, indent);
 
     if(rawValue.empty())
         return defaultValue;
@@ -497,8 +497,8 @@ T Parser::getConverted(const unsigned int& pos, const T& defaultValue) {
 }
 
 template<>
-std::string Parser::getConverted(const unsigned int& pos, const std::string& defaultValue) {
-    std::string rawValue = getPositionalRaw(pos);
+std::string Parser::getConverted(const unsigned int& pos, const unsigned int& indent, const std::string& defaultValue) {
+    std::string rawValue = getPositionalRaw(pos, indent);
 
     if (rawValue.empty())
         return defaultValue;
@@ -507,8 +507,8 @@ std::string Parser::getConverted(const unsigned int& pos, const std::string& def
 }
 
 template<>
-bool Parser::getConverted(const unsigned int& pos, const bool& defaultValue) {
-    std::string rawValue = getPositionalRaw(pos);
+bool Parser::getConverted(const unsigned int& pos, const unsigned int& indent, const bool& defaultValue) {
+    std::string rawValue = getPositionalRaw(pos, indent);
 
     if (rawValue.empty())
         return defaultValue;
