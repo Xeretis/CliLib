@@ -349,7 +349,7 @@ std::string Parser::getPositionalRaw(const unsigned int& pos) {
 std::vector<std::string> Parser::getMultiPositionalRaw(const unsigned int& pos) {
     std::vector<std::string> values;
 
-    for (int i = pos; i < tokens.size(); ++i) {
+    for (unsigned int i = pos; i < tokens.size(); ++i) {
         values.emplace_back(tokens[i]);
     }
 
