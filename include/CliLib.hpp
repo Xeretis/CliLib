@@ -153,6 +153,7 @@ void OptionGroup::addOption(PositionalOption* first, Opts... opts) {
 OptionGroup::~OptionGroup() {
     for (FlagOption* option : flagOptions)
         delete option;
+
     for (PositionalOption* positionalOption : positionalOptions)
         delete positionalOption;
 }
@@ -227,6 +228,7 @@ bool Command::validateOptions() const {
         bool wasOne = false;
         for (const auto& option : group->flagOptions) {
             valid = Parser::isSet(option->opt) || Parser::isSet(option->longOption);
+
             if ((group->flagPolicy == FlagPolicy::REQUIRED && !valid) || (group->flagPolicy == FlagPolicy::ANYOF && valid))
                 break;
             else if (group->flagPolicy == FlagPolicy::ONEOF && valid && !wasOne)
@@ -242,6 +244,7 @@ bool Command::validateOptions() const {
 
         for (const auto& positionalOption : group->positionalOptions) {
             valid = (positionalOption->pos < Parser::tokens.size());
+
             if (group->positionalPolicy == PositionalPolicy::REQUIRED && !valid)
                 break;
             else if (group->positionalPolicy == PositionalPolicy::OPTIONAL)
@@ -256,11 +259,13 @@ bool Command::validateOptions() const {
 
 void Command::printHelp(const std::string &title) const {
     if (!title.empty()) {
+
         for (char i : title)
             std::cout << "-";
         std::cout << "\n" << title << "\n";
         for (char i : title)
             std::cout << "-";
+
         std::cout << "\n";
     }
 
@@ -268,24 +273,29 @@ void Command::printHelp(const std::string &title) const {
 
     if (!subCommands.empty()) {
         std::cout << "Subcommands: (Use --help on the subcommand for more information)\n";
+
         for (const auto& command : subCommands) {
             std::cout << "\t";
             for (const auto& name : command.first)
                 std::cout << name << (name != *--command.first.end() ? ", " : "");
+
             std::cout << " - " << command.second->getDescription() << "\n";
         }
+
         std::cout << "\n";
     }
 
     if (!optionGroups.empty()) {
-        std::cout << "Options:";
-
         std::string policyNames[] = {"REQUIRED", "OPTIONAL", "ANYOF", "ONEOF"};
+
+        std::cout << "Options:";
 
         for (const auto& group : optionGroups) {
             std::cout << "\n[" << group->groupDescription << "] | (Flag Policy: " << policyNames[static_cast<int>(group->flagPolicy)] << ") (Positional Policy: " << policyNames[static_cast<int>(group->positionalPolicy)] << ")\n";
+
             for (const auto& option : group->flagOptions)
                 std::cout << "\t" << option->opt << (option->longOption.empty() ? "" : ", " + option->longOption) << " - " << option->desc << std::endl;
+
             for (const auto& positinalOption : group->positionalOptions)
                 std::cout << "\tPosition: " << positinalOption->pos << " - " << positinalOption->desc << std::endl;
         }
@@ -297,10 +307,11 @@ const std::string &Command::getDescription() const {
 }
 
 bool Command::isOption(const std::string &str) const {
-    for (const auto& group : optionGroups) {
+    for (const auto& group : optionGroups)
         for (const auto& option : group->flagOptions)
-            if (str == option->opt || str == option->longOption) return true;
-    }
+            if (str == option->opt || str == option->longOption)
+                return true;
+
     return false;
 }
 
@@ -347,6 +358,7 @@ std::vector<std::string> Parser::getMultiFlagRaw(const std::string &option, cons
 
     while (itr != tokens.end() && ++itr != tokens.end() && !hasOptionSyntax(*itr))
         values.emplace_back(*itr);
+
     while (itrLong != tokens.end() && ++itrLong != tokens.end() && !hasOptionSyntax(*itrLong))
         values.emplace_back(*itrLong);
 
@@ -363,9 +375,8 @@ std::string Parser::getPositionalRaw(const unsigned int& pos, const unsigned int
 std::vector<std::string> Parser::getMultiPositionalRaw(const unsigned int& pos, const unsigned int& indent) {
     std::vector<std::string> values;
 
-    for (unsigned int i = (indent + pos); i < tokens.size(); ++i) {
+    for (unsigned int i = (indent + pos); i < tokens.size(); ++i)
         values.emplace_back(tokens[i]);
-    }
 
     return values;
 }
