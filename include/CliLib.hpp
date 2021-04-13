@@ -521,8 +521,10 @@ bool Parser::getConverted(const unsigned int& pos, const unsigned int& indent, c
     std::stringstream sBuffer;
     bool value;
 
+    sBuffer.setf(std::ios_base::boolalpha);
+
     sBuffer << rawValue;
-    sBuffer >> std::boolalpha >> value;
+    sBuffer >> value;
 
     return value;
 }
