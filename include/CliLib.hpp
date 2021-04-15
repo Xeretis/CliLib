@@ -17,12 +17,25 @@ enum class PositionalPolicy {
     OPTIONAL
 };
 
-struct FlagOption {
-    FlagOption(std::string opt, std::string desc, std::string longOption = "");
+struct FlagOptionBase {
+    FlagOptionBase(std::string opt, std::string desc, std::string longOption = "");
+
+    virtual void setValue () = 0;
+
+    virtual ~FlagOptionBase() = default;
 
     std::string opt;
     std::string desc;
     std::string longOption;
+};
+
+template<typename T>
+struct FlagOption : public FlagOptionBase {
+    FlagOption(std::string opt, std::string desc, T& var, std::string longOption = "");
+
+    void setValue() override;
+
+    T& var;
 };
 
 struct PositionalOption {
@@ -37,9 +50,9 @@ public:
     explicit OptionGroup(std::string description, FlagPolicy fp = FlagPolicy::REQUIRED, PositionalPolicy pp = PositionalPolicy::REQUIRED);
 
     //? flag options
-    void addOption(FlagOption* single);
+    void addOption(FlagOptionBase* single);
     template<typename... Opts>
-    void addOption(FlagOption* first, Opts... opts);
+    void addOption(FlagOptionBase* first, Opts... opts);
 
     //? positional options
     void addOption(PositionalOption* single);
@@ -51,7 +64,7 @@ public:
 
     FlagPolicy flagPolicy;
     PositionalPolicy positionalPolicy;
-    std::vector<FlagOption*> flagOptions;
+    std::vector<FlagOptionBase*> flagOptions;
     std::vector<PositionalOption*> positionalOptions;
     std::string groupDescription;
 };
@@ -115,9 +128,19 @@ private:
     static std::vector<std::string> getMultiPositionalRaw (const unsigned int& pos, const unsigned int& indent);
 };
 
+//FlagOptionBase
+
+FlagOptionBase::FlagOptionBase(std::string opt, std::string desc, std::string longOption) : opt(std::move(opt)), desc(std::move(desc)), longOption(std::move(longOption)) { }
+
 //FlagOption
 
-FlagOption::FlagOption(std::string opt, std::string desc, std::string longOption) : opt(std::move(opt)), desc(std::move(desc)), longOption(std::move(longOption)) { }
+template<typename T>
+FlagOption<T>::FlagOption(std::string opt, std::string desc, T& var, std::string longOption)  : FlagOptionBase(opt, desc, longOption), var(var) { }
+
+template<typename T>
+void FlagOption<T>::setValue() {
+    var = Parser::getConverted<T>(opt, longOption);
+}
 
 //PositionalOption
 
@@ -126,12 +149,12 @@ PositionalOption::PositionalOption(const unsigned int& pos, std::string desc) : 
 //OptionGroup
 OptionGroup::OptionGroup(std::string description, FlagPolicy fp, PositionalPolicy pp) : groupDescription(std::move(description)), flagPolicy(fp), positionalPolicy(pp) {}
 
-void OptionGroup::addOption(FlagOption* single) {
+void OptionGroup::addOption(FlagOptionBase* single) {
     flagOptions.emplace_back(single);
 }
 
 template<typename... Opts>
-void OptionGroup::addOption(FlagOption* first, Opts... opts) {
+void OptionGroup::addOption(FlagOptionBase* first, Opts... opts) {
     flagOptions.emplace_back(first);
     for (const auto& opt : {opts...})
         flagOptions.emplace_back(opt);
@@ -149,7 +172,7 @@ void OptionGroup::addOption(PositionalOption* first, Opts... opts) {
 }
 
 OptionGroup::~OptionGroup() {
-    for (FlagOption* option : flagOptions)
+    for (FlagOptionBase* option : flagOptions)
         delete option;
 
     for (PositionalOption* positionalOption : positionalOptions)
@@ -215,6 +238,10 @@ void Command::run() {
         exit(0);
     }
 
+    for (const auto& group : optionGroups)
+        for (const auto& flagOption : group->flagOptions)
+            flagOption->setValue();
+
     commandFunction();
 }
 
@@ -228,8 +255,8 @@ bool Command::validateOptions() const {
 
     for (const auto& group : optionGroups) {
         bool wasOne = false;
-        for (const auto& option : group->flagOptions) {
-            valid = Parser::isSet(option->opt) || Parser::isSet(option->longOption);
+        for (const auto& flagOption : group->flagOptions) {
+            valid = Parser::isSet(flagOption->opt) || Parser::isSet(flagOption->longOption);
 
             if ((group->flagPolicy == FlagPolicy::REQUIRED && !valid) || (group->flagPolicy == FlagPolicy::ANYOF && valid))
                 break;
