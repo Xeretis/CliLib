@@ -18,6 +18,7 @@ This project was heavily inspired by a repository called [MiniCommander](https:/
  - [ ] Maybe add windows type flag support (?)
  - [ ] Maybe improve option parsing (?)
  - [ ] More informative error messages
+ - [ ] Make it so options are set when running commands (see experimental branch)
 # Usage
 Start your main function with parsing the program arguments. For this use the `Parser::parse(const int& argc, char const*const* argv, bool splitFlags = false)` method.
 
