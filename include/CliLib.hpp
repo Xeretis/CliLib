@@ -4,6 +4,7 @@
 #include <regex>
 #include <iostream>
 #include <utility>
+#include <variant>
 
 enum class FlagPolicy {
     REQUIRED,
@@ -27,6 +28,19 @@ struct FlagOptionBase {
     std::string opt;
     std::string desc;
     std::string longOption;
+};
+
+struct  Option {
+    Option(std::string opt, std::string desc, std::string longOption = "");
+    Option(const unsigned int& pos, std::string desc);
+
+    virtual void setValue () = 0;
+
+    virtual ~Option() = default;
+
+    std::variant<std::string, unsigned int> opt;
+    std::string desc;
+    std::optional<std::string> longOption;
 };
 
 template<typename T>
@@ -127,6 +141,10 @@ private:
     static std::string getPositionalRaw (const unsigned int& pos, const unsigned int& indent);
     static std::vector<std::string> getMultiPositionalRaw (const unsigned int& pos, const unsigned int& indent);
 };
+
+//Option
+Option::Option(std::string opt, std::string desc, std::string longOption) : opt(std::move(opt)), desc(std::move(desc)), longOption(std::move(longOption)) { }
+Option::Option(const unsigned int& pos, std::string desc) : opt(pos), desc(std::move(desc)) { }
 
 //FlagOptionBase
 
